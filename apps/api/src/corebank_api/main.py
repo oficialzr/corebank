@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from corebank_api.api.health import router as health_router
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -7,17 +9,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
     )
 
-    @app.get("/health")
-    def health_check() -> dict[str, str]:
-        return {"status": "ok"}
-
-    @app.get("/version")
-    def version() -> dict[str, str]:
-        return {
-            "service": "corebank-api",
-            "version": "0.1.0",
-            "environment": "local",
-        }
+    app.include_router(health_router)
 
     return app
 
