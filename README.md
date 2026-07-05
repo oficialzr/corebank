@@ -247,6 +247,11 @@ Main documents:
      Architecture Decision Records. Separate documents explaining important
      architecture choices.
 
+- docs/development.md
+  - local development setup
+  - API startup commands
+  - test commands
+
 
 9. ROADMAP
 ----------
