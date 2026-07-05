@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 
+from corebank_api.core.config import settings
+
 router = APIRouter(tags=["service"])
 
 
@@ -11,7 +13,7 @@ def health_check() -> dict[str, str]:
 @router.get("/version")
 def version() -> dict[str, str]:
     return {
-        "service": "corebank-api",
-        "version": "0.1.0",
-        "environment": "local",
+        "service": settings.service_name,
+        "version": settings.version,
+        "environment": settings.environment,
     }
