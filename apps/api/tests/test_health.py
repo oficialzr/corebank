@@ -1,6 +1,5 @@
-from fastapi.testclient import TestClient
-
 from corebank_api.main import create_app
+from fastapi.testclient import TestClient
 
 
 def test_health_check_returns_ok() -> None:
