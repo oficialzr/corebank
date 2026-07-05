@@ -8,3 +8,13 @@ run-api-test-env:
 
 test:
 	pytest
+
+lint:
+	ruff check apps/api/src apps/api/tests
+
+format:
+	ruff format apps/api/src apps/api/tests
+
+check:
+	pytest
+	ruff check apps/api/src apps/api/tests
