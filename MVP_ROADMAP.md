@@ -12,7 +12,7 @@ Anything not required for MVP goes to the Later Backlog.
 
 ## Current Phase
 
-MVP-6: Docker Compose.
+MVP Core completed. Next phase: MVP stabilization.
 
 ## MVP Definition
 
@@ -207,6 +207,17 @@ Done criteria:
 - API works from browser/curl.
 - Database works.
 - README has Docker instructions.
+
+Status: Done.
+
+Implemented:
+- Dockerfile for API service.
+- Docker Compose with API and PostgreSQL services.
+- PostgreSQL healthcheck.
+- API waits for PostgreSQL readiness.
+- Database tables are created automatically on API container startup.
+- API is available on localhost:8000.
+- README includes Docker Compose run instructions.
 
 ## Later Backlog
 
