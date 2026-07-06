@@ -10,6 +10,11 @@ services:
       - "5433:5432"
     volumes:
       - corebank_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U corebank -d corebank"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -20,7 +25,11 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "python scripts/create_tables.py &&
+      uvicorn corebank_api.main:app --host 0.0.0.0 --port 8000 --app-dir src"
 
 volumes:
   corebank_postgres_data:
