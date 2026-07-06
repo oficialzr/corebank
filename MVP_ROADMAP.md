@@ -231,6 +231,8 @@ Implemented:
 - Transaction IDs are generated with UUID values.
 - Transaction ID generation no longer depends on `count() + 1`.
 - Transaction API tests use created transaction IDs instead of hardcoded sequential IDs.
+- Account IDs are generated with UUID values.
+- Account ID generation no longer depends on the number of existing accounts.
 
 ## Later Backlog
 
