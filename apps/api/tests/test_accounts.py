@@ -66,3 +66,26 @@ def test_create_account_returns_created_account() -> None:
     assert account["owner_name"] == "Ivan Sidorov"
     assert account["balance"] == 0
     assert account["currency"] == "RUB"
+
+def test_create_account_rejects_empty_owner_name() -> None:
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.post(
+        "/accounts",
+        json={"owner_name": "", "currency": "RUB"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_account_rejects_unknown_currency() -> None:
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.post(
+        "/accounts",
+        json={"owner_name": "Ivan Sidorov", "currency": "GBP"},
+    )
+
+    assert response.status_code == 422
