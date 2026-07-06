@@ -1,0 +1,55 @@
+from datetime import UTC, datetime
+
+from sqlalchemy.orm import Session
+
+from corebank_api.database.models import AccountModel
+from corebank_api.schemas.account import AccountResponse
+
+
+def model_to_schema(account: AccountModel) -> AccountResponse:
+    return AccountResponse(
+        id=account.id,
+        owner_name=account.owner_name,
+        balance=account.balance,
+        currency=account.currency,
+    )
+
+
+def get_all_accounts(session: Session) -> list[AccountResponse]:
+    accounts = session.query(AccountModel).order_by(AccountModel.id).all()
+    return [model_to_schema(account) for account in accounts]
+
+
+def get_account_by_id(session: Session, account_id: str) -> AccountResponse | None:
+    account = session.get(AccountModel, account_id)
+
+    if account is None:
+        return None
+
+    return model_to_schema(account)
+
+
+def save_account(session: Session, account: AccountResponse) -> AccountResponse:
+    account_model = AccountModel(
+        id=account.id,
+        owner_name=account.owner_name,
+        balance=account.balance,
+        currency=str(account.currency),
+        created_at=datetime.now(UTC),
+    )
+
+    session.add(account_model)
+    session.commit()
+    session.refresh(account_model)
+
+    return model_to_schema(account_model)
+
+
+def update_account_balance(session: Session, account_id: str, balance: int) -> None:
+    account = session.get(AccountModel, account_id)
+
+    if account is None:
+        return
+
+    account.balance = balance
+    session.commit()
