@@ -12,7 +12,7 @@ Anything not required for MVP goes to the Later Backlog.
 
 ## Current Phase
 
-MVP-0: Stabilize current project state.
+MVP-5: PostgreSQL Persistence.
 
 ## MVP Definition
 
@@ -33,7 +33,6 @@ The MVP is ready when CoreBank can:
 These topics are intentionally postponed:
 
 - Authentication and authorization.
-- PostgreSQL.
 - Docker.
 - Redis.
 - Kafka.

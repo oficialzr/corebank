@@ -6,7 +6,7 @@ The current goal is to build a working MVP first: accounts, transfers, transacti
 
 ## Current MVP Status
 
-Current phase: **MVP-4: README MVP**
+Current phase: **MVP-5: PostgreSQL Persistence**
 
 Already implemented:
 
@@ -15,7 +15,7 @@ Already implemented:
 - Account API
 - Transfer API
 - Transaction API
-- In-memory repositories
+- PostgreSQL repositories
 - Service layer
 - Basic domain errors
 - Pytest test suite
@@ -24,7 +24,7 @@ Already implemented:
 Current test status:
 
 ```bash
-58 passed
+46 PostgreSQL-backed tests
 ```
 
 ## Tech Stack
@@ -32,13 +32,14 @@ Current test status:
 - Python
 - FastAPI
 - Pydantic
+- PostgreSQL
+- SQLAlchemy
 - Pytest
 - Ruff
 - Uvicorn
 
 Planned later:
 
-- PostgreSQL
 - Docker Compose
 - Redis
 - RabbitMQ or Kafka
@@ -90,7 +91,6 @@ Not included before MVP is stable:
 
 - Authentication
 - Authorization
-- PostgreSQL
 - Docker
 - Redis
 - Message brokers
@@ -148,7 +148,7 @@ pytest
 Expected result:
 
 ```text
-58 passed
+46 passed
 ```
 
 ## API Endpoints
@@ -238,8 +238,8 @@ Main rule:
 
 Near-term roadmap:
 
-- Finish MVP-4 README update
-- Add PostgreSQL persistence
+- Finish MVP-5 PostgreSQL cleanup
+- Verify the full test suite against PostgreSQL
 - Add Docker Compose
 - Update documentation after each completed MVP phase
 
