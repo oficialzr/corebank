@@ -1,4 +1,4 @@
-from corebank_api.repositories.transactions import (
+from corebank_api.repositories.transactions_provider import (
     get_all_transactions,
     get_transaction_by_id,
     get_transactions_by_account_id,
