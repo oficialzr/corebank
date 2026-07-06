@@ -15,6 +15,11 @@ lint:
 format:
 	ruff format apps/api/src apps/api/tests
 
+fix:
+	ruff format apps/api/src apps/api/tests
+	ruff check --fix apps/api/src apps/api/tests
+	pytest
+
 check:
 	pytest
 	ruff check apps/api/src apps/api/tests
