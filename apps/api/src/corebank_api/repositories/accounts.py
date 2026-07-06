@@ -26,3 +26,8 @@ def get_account_by_id(account_id: str) -> AccountResponse | None:
             return account
 
     return None
+
+
+def save_account(account: AccountResponse) -> AccountResponse:
+    ACCOUNTS.append(account)
+    return account

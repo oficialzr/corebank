@@ -12,7 +12,7 @@ def test_list_accounts_returns_accounts() -> None:
 
     accounts = response.json()
 
-    assert len(accounts) == 2
+    assert len(accounts) >= 2
     assert accounts[0]["id"] == "acc-001"
     assert accounts[0]["owner_name"] == "Alex Ivanov"
     assert accounts[0]["balance"] == 100000
@@ -44,3 +44,25 @@ def test_get_account_returns_404_for_unknown_account() -> None:
     assert response.json() == {
         "detail": "Account not found",
     }
+
+
+def test_create_account_returns_created_account() -> None:
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.post(
+        "/accounts",
+        json={
+            "owner_name": "Ivan Sidorov",
+            "currency": "RUB",
+        },
+    )
+
+    assert response.status_code == 201
+
+    account = response.json()
+
+    assert account["id"].startswith("acc-")
+    assert account["owner_name"] == "Ivan Sidorov"
+    assert account["balance"] == 0
+    assert account["currency"] == "RUB"

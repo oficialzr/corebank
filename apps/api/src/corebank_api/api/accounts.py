@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 
-from corebank_api.schemas.account import AccountResponse
+from corebank_api.schemas.account import AccountCreateRequest, AccountResponse
 from corebank_api.services.accounts import (
+    create_account,
     get_account_by_id,
     list_accounts,
 )
@@ -25,3 +26,8 @@ def get_account_endpoint(account_id: str) -> AccountResponse:
         )
 
     return account
+
+
+@router.post("", response_model=AccountResponse, status_code=status.HTTP_201_CREATED)
+def create_account_endpoint(request: AccountCreateRequest) -> AccountResponse:
+    return create_account(request)
