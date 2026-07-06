@@ -7,6 +7,7 @@ class Settings:
     service_name: str
     version: str
     environment: str
+    repository_backend: str
 
 
 def get_settings() -> Settings:
@@ -14,6 +15,7 @@ def get_settings() -> Settings:
         service_name=os.getenv("COREBANK_SERVICE_NAME", "corebank-api"),
         version=os.getenv("COREBANK_VERSION", "0.1.0"),
         environment=os.getenv("COREBANK_ENVIRONMENT", "local"),
+        repository_backend=os.getenv("COREBANK_REPOSITORY_BACKEND", "memory"),
     )
 
 
