@@ -219,6 +219,16 @@ Implemented:
 - API is available on localhost:8000.
 - README includes Docker Compose run instructions.
 
+## MVP Stabilization
+
+Goal: Improve MVP correctness without adding new infrastructure or extra features.
+
+Implemented:
+- Transfer operation uses one database session.
+- Account balance updates and transaction history save happen in one database transaction.
+- Transfer operation uses one final commit.
+- Transfer rollback behavior is covered by a service test.
+
 ## Later Backlog
 
 These tasks are useful, but not part of MVP:
