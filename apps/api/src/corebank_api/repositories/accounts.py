@@ -1,6 +1,7 @@
 from corebank_api.schemas.account import AccountResponse
 
-ACCOUNTS = [
+
+_INITIAL_ACCOUNTS = [
     AccountResponse(
         id="acc-001",
         owner_name="Alex Ivanov",
@@ -11,9 +12,16 @@ ACCOUNTS = [
         id="acc-002",
         owner_name="Maria Petrova",
         balance=250000,
-        currency="RUB",
+        currency="USD",
     ),
 ]
+
+ACCOUNTS = list(_INITIAL_ACCOUNTS)
+
+
+def reset_accounts_repository() -> None:
+    ACCOUNTS.clear()
+    ACCOUNTS.extend(_INITIAL_ACCOUNTS)
 
 
 def get_all_accounts() -> list[AccountResponse]:
