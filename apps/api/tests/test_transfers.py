@@ -1,3 +1,8 @@
+def assert_transaction_id_format(transaction_id: str) -> None:
+    assert transaction_id.startswith("tx-")
+    assert len(transaction_id) > len("tx-")
+
+
 def test_create_transfer_moves_money_between_accounts(client) -> None:
     response = client.post(
         "/transfers",
@@ -9,13 +14,13 @@ def test_create_transfer_moves_money_between_accounts(client) -> None:
     )
 
     assert response.status_code == 201
-    assert response.json() == {
-        "transaction_id": "tx-001",
-        "from_account_id": "acc-001",
-        "to_account_id": "acc-002",
-        "amount": 1000,
-        "status": "completed",
-    }
+    response_data = response.json()
+
+    assert_transaction_id_format(response_data["transaction_id"])
+    assert response_data["from_account_id"] == "acc-001"
+    assert response_data["to_account_id"] == "acc-002"
+    assert response_data["amount"] == 1000
+    assert response_data["status"] == "completed"
 
     from_account_response = client.get("/accounts/acc-001")
     to_account_response = client.get("/accounts/acc-002")
@@ -161,5 +166,11 @@ def test_create_transfer_returns_next_transaction_id(client) -> None:
 
     assert first_response.status_code == 201
     assert second_response.status_code == 201
-    assert first_response.json()["transaction_id"] == "tx-001"
-    assert second_response.json()["transaction_id"] == "tx-002"
+
+    first_transaction_id = first_response.json()["transaction_id"]
+    second_transaction_id = second_response.json()["transaction_id"]
+
+    assert_transaction_id_format(first_transaction_id)
+    assert_transaction_id_format(second_transaction_id)
+    
+    assert first_transaction_id != second_transaction_id

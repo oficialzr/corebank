@@ -14,6 +14,11 @@ from corebank_api.services.accounts import create_account
 from corebank_api.services.transfers import create_transfer
 
 
+def assert_transaction_id_format(transaction_id: str) -> None:
+    assert transaction_id.startswith("tx-")
+    assert len(transaction_id) > len("tx-")
+
+
 def test_create_transfer_service_moves_money_between_accounts() -> None:
     request = TransferCreateRequest(
         from_account_id="acc-001",
@@ -30,7 +35,7 @@ def test_create_transfer_service_moves_money_between_accounts() -> None:
     assert transaction is not None
     assert transaction.created_at is not None
 
-    assert response.transaction_id == "tx-001"
+    assert_transaction_id_format(response.transaction_id)
     assert response.from_account_id == "acc-001"
     assert response.to_account_id == "acc-002"
     assert response.amount == 1000

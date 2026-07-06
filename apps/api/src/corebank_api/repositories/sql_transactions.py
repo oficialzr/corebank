@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from corebank_api.database.models import TransactionModel
 from corebank_api.schemas.transaction import TransactionResponse
 
+from uuid import uuid4
+
 
 def model_to_schema(transaction: TransactionModel) -> TransactionResponse:
     return TransactionResponse(
@@ -78,7 +80,4 @@ def save_transaction(
 
 
 def generate_transaction_id(session: Session) -> str:
-    transactions_count = session.query(TransactionModel).count()
-    next_number = transactions_count + 1
-
-    return f"tx-{next_number:03}"
+    return f"tx-{uuid4()}"
