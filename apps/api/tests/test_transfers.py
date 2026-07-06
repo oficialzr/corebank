@@ -21,7 +21,7 @@ def test_create_transfer_moves_money_between_accounts(client) -> None:
     to_account_response = client.get("/accounts/acc-002")
 
     assert from_account_response.json()["balance"] == 99000
-    assert to_account_response.json()["balance"] == 251000
+    assert to_account_response.json()["balance"] == 51000
 
 
 def test_create_transfer_returns_404_for_unknown_source_account(client) -> None:

@@ -6,8 +6,8 @@ from corebank_api.domain.errors import (
     SameAccountTransferError,
     SourceAccountNotFoundError,
 )
-from corebank_api.repositories.accounts import get_account_by_id
-from corebank_api.repositories.transactions import get_transaction_by_id
+from corebank_api.repositories.accounts_provider import get_account_by_id
+from corebank_api.repositories.transactions_provider import get_transaction_by_id
 from corebank_api.schemas.account import AccountCreateRequest
 from corebank_api.schemas.transfer import TransferCreateRequest
 from corebank_api.services.accounts import create_account
@@ -39,7 +39,7 @@ def test_create_transfer_service_moves_money_between_accounts() -> None:
     assert from_account is not None
     assert to_account is not None
     assert from_account.balance == 99000
-    assert to_account.balance == 251000
+    assert to_account.balance == 51000
 
 
 def test_create_transfer_service_raises_404_for_unknown_source_account() -> None:

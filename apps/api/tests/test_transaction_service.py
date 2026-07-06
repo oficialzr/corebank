@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from corebank_api.repositories.transactions import save_transaction
+from corebank_api.repositories.transactions_provider import save_transaction
 from corebank_api.schemas.common import Currency
 from corebank_api.schemas.transaction import TransactionResponse
 from corebank_api.schemas.transfer import TransferStatus

@@ -6,9 +6,7 @@ from corebank_api.schemas.transaction import TransactionResponse
 from corebank_api.schemas.transfer import TransferStatus
 
 
-def test_transactions_provider_uses_memory_backend_by_default(monkeypatch) -> None:
-    monkeypatch.delenv("COREBANK_REPOSITORY_BACKEND", raising=False)
-
+def test_transactions_provider_uses_postgres_backend() -> None:
     first_transaction_id = transactions_provider.generate_transaction_id()
 
     transaction = TransactionResponse(

@@ -1,9 +1,8 @@
-from fastapi.testclient import TestClient
-from sqlalchemy.exc import OperationalError
-
 from corebank_api.database.models import AccountModel
 from corebank_api.database.session import SessionLocal
 from corebank_api.main import create_app
+from fastapi.testclient import TestClient
+from sqlalchemy.exc import OperationalError
 
 
 def test_sql_backend_accounts_api_creates_and_reads_account(monkeypatch) -> None:
