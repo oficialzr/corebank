@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: corebank-postgres-compose
+    environment:
+      POSTGRES_DB: corebank
+      POSTGRES_USER: corebank
+      POSTGRES_PASSWORD: corebank
+    ports:
+      - "5433:5432"
+    volumes:
+      - corebank_postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: corebank-api-compose
+    environment:
+      COREBANK_DATABASE_URL: postgresql+psycopg://corebank:corebank@postgres:5432/corebank
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+volumes:
+  corebank_postgres_data:
