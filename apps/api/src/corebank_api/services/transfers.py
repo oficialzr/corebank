@@ -7,14 +7,8 @@ from corebank_api.domain.errors import (
     SameAccountTransferError,
     SourceAccountNotFoundError,
 )
-from corebank_api.repositories.accounts_provider import (
-    get_account_by_id,
-    update_account_balance,
-)
-from corebank_api.repositories.transactions_provider import (
-    generate_transaction_id,
-    save_transaction,
-)
+from corebank_api.database.session import SessionLocal
+from corebank_api.repositories import sql_accounts, sql_transactions
 from corebank_api.schemas.transaction import TransactionResponse
 from corebank_api.schemas.transfer import (
     TransferCreateRequest,
@@ -24,45 +18,66 @@ from corebank_api.schemas.transfer import (
 
 
 def create_transfer(request: TransferCreateRequest) -> TransferResponse:
-    from_account = get_account_by_id(request.from_account_id)
-    to_account = get_account_by_id(request.to_account_id)
+    with SessionLocal() as session:
+        from_account = sql_accounts.get_account_by_id(
+            session,
+            request.from_account_id,
+        )
+        to_account = sql_accounts.get_account_by_id(
+            session,
+            request.to_account_id,
+        )
 
-    if from_account is None:
-        raise SourceAccountNotFoundError
+        if from_account is None:
+            raise SourceAccountNotFoundError
 
-    if to_account is None:
-        raise DestinationAccountNotFoundError
+        if to_account is None:
+            raise DestinationAccountNotFoundError
 
-    if from_account.id == to_account.id:
-        raise SameAccountTransferError
+        if from_account.id == to_account.id:
+            raise SameAccountTransferError
 
-    if from_account.currency != to_account.currency:
-        raise CurrencyMismatchError
+        if from_account.currency != to_account.currency:
+            raise CurrencyMismatchError
 
-    if from_account.balance < request.amount:
-        raise InsufficientFundsError
+        if from_account.balance < request.amount:
+            raise InsufficientFundsError
 
-    update_account_balance(from_account.id, from_account.balance - request.amount)
-    update_account_balance(to_account.id, to_account.balance + request.amount)
+        sql_accounts.update_account_balance(
+            session,
+            from_account.id,
+            from_account.balance - request.amount,
+            commit=False,
+        )
+        sql_accounts.update_account_balance(
+            session,
+            to_account.id,
+            to_account.balance + request.amount,
+            commit=False,
+        )
 
-    transaction_id = generate_transaction_id()
+        transaction_id = sql_transactions.generate_transaction_id(session)
 
-    transaction = save_transaction(
-        TransactionResponse(
-            id=transaction_id,
+        transaction = sql_transactions.save_transaction(
+            session,
+            TransactionResponse(
+                id=transaction_id,
+                from_account_id=from_account.id,
+                to_account_id=to_account.id,
+                amount=request.amount,
+                currency=from_account.currency,
+                status=TransferStatus.COMPLETED,
+                created_at=datetime.now(UTC),
+            ),
+            commit=False,
+        )
+
+        session.commit()
+
+        return TransferResponse(
+            transaction_id=transaction.id,
             from_account_id=from_account.id,
             to_account_id=to_account.id,
             amount=request.amount,
-            currency=from_account.currency,
             status=TransferStatus.COMPLETED,
-            created_at=datetime.now(UTC),
-        ),
-    )
-
-    return TransferResponse(
-        transaction_id=transaction.id,
-        from_account_id=from_account.id,
-        to_account_id=to_account.id,
-        amount=request.amount,
-        status=TransferStatus.COMPLETED,
-    )
+        )
