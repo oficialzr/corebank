@@ -9,6 +9,7 @@ from corebank_api.repositories.transactions import (
     generate_transaction_id,
     get_all_transactions,
     get_transaction_by_id,
+    get_transactions_by_account_id,
     save_transaction,
 )
 from corebank_api.schemas.common import Currency
@@ -119,3 +120,45 @@ def test_generate_transaction_id_repository_returns_next_id() -> None:
 
     assert first_transaction_id == "tx-001"
     assert second_transaction_id == "tx-002"
+
+
+def test_get_transactions_by_account_id_repository_returns_related_transactions() -> (
+    None
+):
+    first_transaction = TransactionResponse(
+        id="tx-001",
+        from_account_id="acc-001",
+        to_account_id="acc-002",
+        amount=1000,
+        currency=Currency.RUB,
+        status=TransferStatus.COMPLETED,
+        created_at=datetime.now(UTC),
+    )
+    second_transaction = TransactionResponse(
+        id="tx-002",
+        from_account_id="acc-003",
+        to_account_id="acc-001",
+        amount=2000,
+        currency=Currency.RUB,
+        status=TransferStatus.COMPLETED,
+        created_at=datetime.now(UTC),
+    )
+    unrelated_transaction = TransactionResponse(
+        id="tx-003",
+        from_account_id="acc-004",
+        to_account_id="acc-005",
+        amount=3000,
+        currency=Currency.RUB,
+        status=TransferStatus.COMPLETED,
+        created_at=datetime.now(UTC),
+    )
+
+    save_transaction(first_transaction)
+    save_transaction(second_transaction)
+    save_transaction(unrelated_transaction)
+
+    transactions = get_transactions_by_account_id("acc-001")
+
+    assert len(transactions) == 2
+    assert transactions[0].id == "tx-001"
+    assert transactions[1].id == "tx-002"

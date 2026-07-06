@@ -27,3 +27,12 @@ def get_transaction_by_id(transaction_id: str) -> TransactionResponse | None:
 def save_transaction(transaction: TransactionResponse) -> TransactionResponse:
     TRANSACTIONS.append(transaction)
     return transaction
+
+
+def get_transactions_by_account_id(account_id: str) -> list[TransactionResponse]:
+    return [
+        transaction
+        for transaction in TRANSACTIONS
+        if transaction.from_account_id == account_id
+        or transaction.to_account_id == account_id
+    ]
