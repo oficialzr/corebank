@@ -1,12 +1,7 @@
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
-
-
-class Currency(StrEnum):
-    RUB = "RUB"
-    USD = "USD"
-    EUR = "EUR"
+from corebank_api.schemas.common import Currency
 
 
 class AccountCreateRequest(BaseModel):
