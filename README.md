@@ -92,7 +92,6 @@ Not included before MVP is stable:
 
 - Authentication
 - Authorization
-- Docker
 - Redis
 - Message brokers
 - CI/CD
@@ -230,7 +229,7 @@ Examples:
 
 ```bash
 curl http://127.0.0.1:8000/transactions
-curl http://127.0.0.1:8000/transactions/tx-001
+curl http://127.0.0.1:8000/transactions/{transaction_id}
 curl "http://127.0.0.1:8000/transactions?account_id=acc-001"
 ```
 
@@ -266,10 +265,10 @@ Main rule:
 
 Near-term roadmap:
 
-- Finish MVP-5 PostgreSQL cleanup
-- Verify the full test suite against PostgreSQL
-- Add Docker Compose
-- Update documentation after each completed MVP phase
+- Continue MVP stabilization
+- Improve database transaction safety
+- Keep README and roadmap synchronized with implemented behavior
+- Avoid adding production infrastructure before the MVP is stable
 
 Long-term improvements:
 
