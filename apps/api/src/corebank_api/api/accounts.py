@@ -1,21 +1,23 @@
 from fastapi import APIRouter
 
+from corebank_api.schemas.account import AccountResponse
+
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 
-@router.get("")
-def list_accounts() -> list[dict[str, str | int]]:
+@router.get("", response_model=list[AccountResponse])
+def list_accounts() -> list[AccountResponse]:
     return [
-        {
-            "id": "acc-001",
-            "owner_name": "Alex Ivanov",
-            "balance": 100000,
-            "currency": "RUB",
-        },
-        {
-            "id": "acc-002",
-            "owner_name": "Maria Petrova",
-            "balance": 250000,
-            "currency": "RUB",
-        },
+        AccountResponse(
+            id="acc-001",
+            owner_name="Alex Ivanov",
+            balance=100000,
+            currency="RUB",
+        ),
+        AccountResponse(
+            id="acc-002",
+            owner_name="Maria Petrova",
+            balance=250000,
+            currency="RUB",
+        ),
     ]
