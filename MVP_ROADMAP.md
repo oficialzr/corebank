@@ -134,7 +134,7 @@ Required endpoints:
 
 - GET /transactions
 - GET /transactions/{transaction_id}
-- GET /accounts/{account_id}/transactions
+- GET /transactions?account_id={account_id}
 
 Done criteria:
 
