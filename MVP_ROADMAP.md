@@ -228,6 +228,9 @@ Implemented:
 - Account balance updates and transaction history save happen in one database transaction.
 - Transfer operation uses one final commit.
 - Transfer rollback behavior is covered by a service test.
+- Transaction IDs are generated with UUID values.
+- Transaction ID generation no longer depends on `count() + 1`.
+- Transaction API tests use created transaction IDs instead of hardcoded sequential IDs.
 
 ## Later Backlog
 
