@@ -69,6 +69,7 @@ def test_create_account_rejects_unknown_currency(client) -> None:
 
     assert response.status_code == 422
 
+
 def test_create_account_rejects_blank_owner_name(client) -> None:
     response = client.post(
         "/accounts",
@@ -76,6 +77,7 @@ def test_create_account_rejects_blank_owner_name(client) -> None:
     )
 
     assert response.status_code == 422
+
 
 def test_create_account_strips_owner_name_spaces(client) -> None:
     response = client.post(

@@ -11,7 +11,7 @@ _INITIAL_ACCOUNTS = [
         id="acc-002",
         owner_name="Maria Petrova",
         balance=250000,
-        currency="USD",
+        currency="RUB",
     ),
 ]
 
@@ -38,3 +38,12 @@ def get_account_by_id(account_id: str) -> AccountResponse | None:
 def save_account(account: AccountResponse) -> AccountResponse:
     ACCOUNTS.append(account)
     return account
+
+
+def update_account_balance(account_id: str, balance: int) -> None:
+    account = get_account_by_id(account_id)
+
+    if account is None:
+        return
+
+    account.balance = balance
