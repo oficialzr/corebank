@@ -104,7 +104,7 @@ def test_list_transactions_rejects_empty_account_id_filter(client) -> None:
 
 def test_list_transactions_rejects_blank_account_id_filter(client) -> None:
     response = client.get("/transactions?account_id=+++")
-    
+
     assert response.status_code == 422
     assert response.json() == {
         "detail": "account_id must not be blank",
