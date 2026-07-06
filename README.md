@@ -139,6 +139,39 @@ Swagger UI:
 http://127.0.0.1:8000/docs
 ```
 
+## Run with Docker Compose
+
+Start API and PostgreSQL:
+
+```bash
+docker compose up --build
+```
+
+
+Create database tables inside the API container:
+
+```bash
+docker compose exec api python scripts/create_tables.py
+```
+
+Check that API is running:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Check accounts endpoint:
+
+```bash
+curl http://127.0.0.1:8000/accounts
+```
+
+Stop containers:
+
+```bash
+docker compose down
+```
+
 ## Run Tests
 
 Run the full test suite:
