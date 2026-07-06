@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from corebank_api.repositories import accounts_provider as accounts_repository
 from corebank_api.schemas.account import AccountCreateRequest, AccountResponse
 
@@ -11,11 +13,8 @@ def get_account_by_id(account_id: str) -> AccountResponse | None:
 
 
 def create_account(request: AccountCreateRequest) -> AccountResponse:
-    accounts = accounts_repository.get_all_accounts()
-    next_number = len(accounts) + 1
-
     account = AccountResponse(
-        id=f"acc-{next_number:03}",
+        id=f"acc-{uuid4()}",
         owner_name=request.owner_name,
         balance=0,
         currency=request.currency,

@@ -172,5 +172,5 @@ def test_create_transfer_returns_next_transaction_id(client) -> None:
 
     assert_transaction_id_format(first_transaction_id)
     assert_transaction_id_format(second_transaction_id)
-    
+
     assert first_transaction_id != second_transaction_id

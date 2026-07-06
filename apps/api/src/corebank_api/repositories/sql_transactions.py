@@ -1,11 +1,10 @@
 from datetime import UTC, datetime
+from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
 from corebank_api.database.models import TransactionModel
 from corebank_api.schemas.transaction import TransactionResponse
-
-from uuid import uuid4
 
 
 def model_to_schema(transaction: TransactionModel) -> TransactionResponse:
