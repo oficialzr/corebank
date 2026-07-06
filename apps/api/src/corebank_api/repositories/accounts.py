@@ -1,6 +1,5 @@
 from corebank_api.schemas.account import AccountResponse
 
-
 _INITIAL_ACCOUNTS = [
     AccountResponse(
         id="acc-001",

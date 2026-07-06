@@ -1,5 +1,4 @@
 import pytest
-
 from corebank_api.repositories.accounts import reset_accounts_repository
 
 

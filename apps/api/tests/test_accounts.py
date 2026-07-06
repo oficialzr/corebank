@@ -67,6 +67,7 @@ def test_create_account_returns_created_account() -> None:
     assert account["balance"] == 0
     assert account["currency"] == "RUB"
 
+
 def test_create_account_rejects_empty_owner_name() -> None:
     app = create_app()
     client = TestClient(app)
