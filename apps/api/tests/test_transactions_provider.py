@@ -1,5 +1,5 @@
-from corebank_api.repositories import transactions as memory_transactions_repository
 from corebank_api.repositories import sql_transactions as sql_transactions_repository
+from corebank_api.repositories import transactions as memory_transactions_repository
 from corebank_api.repositories.transactions_provider import (
     get_transactions_repository,
 )
