@@ -25,6 +25,7 @@ def test_create_transfer_service_moves_money_between_accounts() -> None:
     from_account = get_account_by_id("acc-001")
     to_account = get_account_by_id("acc-002")
 
+    assert response.transaction_id == "tx-001"
     assert response.from_account_id == "acc-001"
     assert response.to_account_id == "acc-002"
     assert response.amount == 1000

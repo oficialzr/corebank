@@ -14,6 +14,7 @@ class TransferCreateRequest(BaseModel):
 
 
 class TransferResponse(BaseModel):
+    transaction_id: str
     from_account_id: str
     to_account_id: str
     amount: int

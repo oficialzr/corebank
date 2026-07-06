@@ -10,6 +10,7 @@ def test_create_transfer_moves_money_between_accounts(client) -> None:
 
     assert response.status_code == 201
     assert response.json() == {
+        "transaction_id": "tx-001",
         "from_account_id": "acc-001",
         "to_account_id": "acc-002",
         "amount": 1000,
