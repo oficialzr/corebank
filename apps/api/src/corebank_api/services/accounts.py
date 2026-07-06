@@ -1,4 +1,4 @@
-from corebank_api.repositories import accounts as accounts_repository
+from corebank_api.repositories import accounts_provider as accounts_repository
 from corebank_api.schemas.account import AccountCreateRequest, AccountResponse
 
 
