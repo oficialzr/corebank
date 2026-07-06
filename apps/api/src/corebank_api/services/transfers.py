@@ -1,5 +1,10 @@
-from fastapi import HTTPException
-
+from corebank_api.domain.errors import (
+    CurrencyMismatchError,
+    DestinationAccountNotFoundError,
+    InsufficientFundsError,
+    SameAccountTransferError,
+    SourceAccountNotFoundError,
+)
 from corebank_api.repositories.accounts import (
     get_account_by_id,
     update_account_balance,
@@ -16,19 +21,19 @@ def create_transfer(request: TransferCreateRequest) -> TransferResponse:
     to_account = get_account_by_id(request.to_account_id)
 
     if from_account is None:
-        raise HTTPException(status_code=404, detail="Source account not found")
+        raise SourceAccountNotFoundError
 
     if to_account is None:
-        raise HTTPException(status_code=404, detail="Destination account not found")
+        raise DestinationAccountNotFoundError
 
     if from_account.id == to_account.id:
-        raise HTTPException(status_code=400, detail="Cannot transfer to same account")
+        raise SameAccountTransferError
 
     if from_account.currency != to_account.currency:
-        raise HTTPException(status_code=400, detail="Currency mismatch")
+        raise CurrencyMismatchError
 
     if from_account.balance < request.amount:
-        raise HTTPException(status_code=400, detail="Insufficient funds")
+        raise InsufficientFundsError
 
     update_account_balance(from_account.id, from_account.balance - request.amount)
     update_account_balance(to_account.id, to_account.balance + request.amount)

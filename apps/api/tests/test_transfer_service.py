@@ -1,8 +1,13 @@
 import pytest
+from corebank_api.domain.errors import (
+    DestinationAccountNotFoundError,
+    InsufficientFundsError,
+    SameAccountTransferError,
+    SourceAccountNotFoundError,
+)
 from corebank_api.repositories.accounts import get_account_by_id
 from corebank_api.schemas.transfer import TransferCreateRequest
 from corebank_api.services.transfers import create_transfer
-from fastapi import HTTPException
 
 
 def test_create_transfer_service_moves_money_between_accounts() -> None:
@@ -35,11 +40,8 @@ def test_create_transfer_service_raises_404_for_unknown_source_account() -> None
         amount=1000,
     )
 
-    with pytest.raises(HTTPException) as error:
+    with pytest.raises(SourceAccountNotFoundError):
         create_transfer(request)
-
-    assert error.value.status_code == 404
-    assert error.value.detail == "Source account not found"
 
 
 def test_create_transfer_service_raises_404_for_unknown_destination_account() -> None:
@@ -49,11 +51,8 @@ def test_create_transfer_service_raises_404_for_unknown_destination_account() ->
         amount=1000,
     )
 
-    with pytest.raises(HTTPException) as error:
+    with pytest.raises(DestinationAccountNotFoundError):
         create_transfer(request)
-
-    assert error.value.status_code == 404
-    assert error.value.detail == "Destination account not found"
 
 
 def test_create_transfer_service_rejects_transfer_to_same_account() -> None:
@@ -63,11 +62,8 @@ def test_create_transfer_service_rejects_transfer_to_same_account() -> None:
         amount=1000,
     )
 
-    with pytest.raises(HTTPException) as error:
+    with pytest.raises(SameAccountTransferError):
         create_transfer(request)
-
-    assert error.value.status_code == 400
-    assert error.value.detail == "Cannot transfer to same account"
 
 
 def test_create_transfer_service_rejects_insufficient_funds() -> None:
@@ -77,8 +73,5 @@ def test_create_transfer_service_rejects_insufficient_funds() -> None:
         amount=999999999,
     )
 
-    with pytest.raises(HTTPException) as error:
+    with pytest.raises(InsufficientFundsError):
         create_transfer(request)
-
-    assert error.value.status_code == 400
-    assert error.value.detail == "Insufficient funds"
