@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from corebank_api.database.session import SessionLocal
 from corebank_api.domain.errors import (
     CurrencyMismatchError,
     DestinationAccountNotFoundError,
@@ -7,7 +8,6 @@ from corebank_api.domain.errors import (
     SameAccountTransferError,
     SourceAccountNotFoundError,
 )
-from corebank_api.database.session import SessionLocal
 from corebank_api.repositories import sql_accounts, sql_transactions
 from corebank_api.schemas.transaction import TransactionResponse
 from corebank_api.schemas.transfer import (
