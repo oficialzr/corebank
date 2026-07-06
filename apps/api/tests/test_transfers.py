@@ -138,3 +138,28 @@ def test_create_transfer_rejects_currency_mismatch(client) -> None:
     assert response.json() == {
         "detail": "Currency mismatch",
     }
+
+
+def test_create_transfer_returns_next_transaction_id(client) -> None:
+    first_response = client.post(
+        "/transfers",
+        json={
+            "from_account_id": "acc-001",
+            "to_account_id": "acc-002",
+            "amount": 1000,
+        },
+    )
+
+    second_response = client.post(
+        "/transfers",
+        json={
+            "from_account_id": "acc-001",
+            "to_account_id": "acc-002",
+            "amount": 1000,
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+    assert first_response.json()["transaction_id"] == "tx-001"
+    assert second_response.json()["transaction_id"] == "tx-002"

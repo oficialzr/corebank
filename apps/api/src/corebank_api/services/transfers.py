@@ -9,7 +9,10 @@ from corebank_api.repositories.accounts import (
     get_account_by_id,
     update_account_balance,
 )
-from corebank_api.repositories.transactions import save_transaction
+from corebank_api.repositories.transactions import (
+    generate_transaction_id,
+    save_transaction,
+)
 from corebank_api.schemas.transaction import TransactionResponse
 from corebank_api.schemas.transfer import (
     TransferCreateRequest,
@@ -40,7 +43,7 @@ def create_transfer(request: TransferCreateRequest) -> TransferResponse:
     update_account_balance(from_account.id, from_account.balance - request.amount)
     update_account_balance(to_account.id, to_account.balance + request.amount)
 
-    transaction_id = "tx-001"
+    transaction_id = generate_transaction_id()
 
     transaction = save_transaction(
         TransactionResponse(

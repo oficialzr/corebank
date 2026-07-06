@@ -4,6 +4,7 @@ from corebank_api.repositories.accounts import (
     update_account_balance,
 )
 from corebank_api.repositories.transactions import (
+    generate_transaction_id,
     get_all_transactions,
     get_transaction_by_id,
     save_transaction,
@@ -93,3 +94,23 @@ def test_get_transaction_by_id_repository_returns_none_for_unknown_transaction()
     transaction = get_transaction_by_id("tx-999")
 
     assert transaction is None
+
+
+def test_generate_transaction_id_repository_returns_next_id() -> None:
+    first_transaction_id = generate_transaction_id()
+
+    transaction = TransactionResponse(
+        id=first_transaction_id,
+        from_account_id="acc-001",
+        to_account_id="acc-002",
+        amount=1000,
+        currency=Currency.RUB,
+        status=TransferStatus.COMPLETED,
+    )
+
+    save_transaction(transaction)
+
+    second_transaction_id = generate_transaction_id()
+
+    assert first_transaction_id == "tx-001"
+    assert second_transaction_id == "tx-002"
