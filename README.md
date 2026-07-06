@@ -147,13 +147,6 @@ Start API and PostgreSQL:
 docker compose up --build
 ```
 
-
-Create database tables inside the API container:
-
-```bash
-docker compose exec api python scripts/create_tables.py
-```
-
 Check that API is running:
 
 ```bash
