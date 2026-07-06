@@ -94,3 +94,38 @@ def test_list_transactions_filters_by_account_id_returns_empty_list(client) -> N
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_list_transactions_rejects_empty_account_id_filter(client) -> None:
+    response = client.get("/transactions?account_id=")
+
+    assert response.status_code == 422
+
+
+def test_list_transactions_rejects_blank_account_id_filter(client) -> None:
+    response = client.get("/transactions?account_id=+++")
+    
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "account_id must not be blank",
+    }
+
+
+def test_list_transactions_strips_account_id_filter_spaces(client) -> None:
+    client.post(
+        "/transfers",
+        json={
+            "from_account_id": "acc-001",
+            "to_account_id": "acc-002",
+            "amount": 1000,
+        },
+    )
+
+    response = client.get("/transactions?account_id=+acc-001+")
+
+    assert response.status_code == 200
+
+    transactions = response.json()
+
+    assert len(transactions) == 1
+    assert transactions[0]["id"] == "tx-001"
