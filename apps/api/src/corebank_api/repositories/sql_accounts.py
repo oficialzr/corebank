@@ -45,11 +45,19 @@ def save_account(session: Session, account: AccountResponse) -> AccountResponse:
     return model_to_schema(account_model)
 
 
-def update_account_balance(session: Session, account_id: str, balance: int) -> None:
+def update_account_balance(
+    session: Session,
+    account_id: str,
+    balance: int,
+    *,
+    commit: bool = True,
+) -> None:
     account = session.get(AccountModel, account_id)
 
     if account is None:
         return
 
     account.balance = balance
-    session.commit()
+
+    if commit:
+        session.commit()

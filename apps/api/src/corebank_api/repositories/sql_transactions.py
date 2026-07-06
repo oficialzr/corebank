@@ -55,6 +55,8 @@ def get_transactions_by_account_id(
 def save_transaction(
     session: Session,
     transaction: TransactionResponse,
+    *,
+    commit: bool = True,
 ) -> TransactionResponse:
     transaction_model = TransactionModel(
         id=transaction.id,
@@ -67,8 +69,10 @@ def save_transaction(
     )
 
     session.add(transaction_model)
-    session.commit()
-    session.refresh(transaction_model)
+
+    if commit:
+        session.commit()
+        session.refresh(transaction_model)
 
     return model_to_schema(transaction_model)
 
