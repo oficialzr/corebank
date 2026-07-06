@@ -1,11 +1,4 @@
-from corebank_api.main import create_app
-from fastapi.testclient import TestClient
-
-
-def test_list_accounts_returns_accounts() -> None:
-    app = create_app()
-    client = TestClient(app)
-
+def test_list_accounts_returns_accounts(client) -> None:
     response = client.get("/accounts")
 
     assert response.status_code == 200
@@ -19,10 +12,7 @@ def test_list_accounts_returns_accounts() -> None:
     assert accounts[0]["currency"] == "RUB"
 
 
-def test_get_account_returns_account_by_id() -> None:
-    app = create_app()
-    client = TestClient(app)
-
+def test_get_account_returns_account_by_id(client) -> None:
     response = client.get("/accounts/acc-001")
 
     assert response.status_code == 200
@@ -34,10 +24,7 @@ def test_get_account_returns_account_by_id() -> None:
     }
 
 
-def test_get_account_returns_404_for_unknown_account() -> None:
-    app = create_app()
-    client = TestClient(app)
-
+def test_get_account_returns_404_for_unknown_account(client) -> None:
     response = client.get("/accounts/acc-999")
 
     assert response.status_code == 404
@@ -46,10 +33,7 @@ def test_get_account_returns_404_for_unknown_account() -> None:
     }
 
 
-def test_create_account_returns_created_account() -> None:
-    app = create_app()
-    client = TestClient(app)
-
+def test_create_account_returns_created_account(client) -> None:
     response = client.post(
         "/accounts",
         json={
@@ -68,10 +52,7 @@ def test_create_account_returns_created_account() -> None:
     assert account["currency"] == "RUB"
 
 
-def test_create_account_rejects_empty_owner_name() -> None:
-    app = create_app()
-    client = TestClient(app)
-
+def test_create_account_rejects_empty_owner_name(client) -> None:
     response = client.post(
         "/accounts",
         json={"owner_name": "", "currency": "RUB"},
@@ -80,10 +61,7 @@ def test_create_account_rejects_empty_owner_name() -> None:
     assert response.status_code == 422
 
 
-def test_create_account_rejects_unknown_currency() -> None:
-    app = create_app()
-    client = TestClient(app)
-
+def test_create_account_rejects_unknown_currency(client) -> None:
     response = client.post(
         "/accounts",
         json={"owner_name": "Ivan Sidorov", "currency": "GBP"},
