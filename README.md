@@ -6,7 +6,7 @@ The current goal is to build a working MVP first: accounts, transfers, transacti
 
 ## Current MVP Status
 
-Current phase: **MVP-6: Docker Compose**
+Current phase: **MVP Core completed. Next phase: MVP stabilization**
 
 Already implemented:
 
@@ -15,13 +15,13 @@ Already implemented:
 - Account API
 - Transfer API
 - Transaction API
+- PostgreSQL persistence
 - PostgreSQL repositories
+- Docker Compose setup
 - Service layer
 - Basic domain errors
 - Pytest test suite
 - MVP roadmap
-- PostgreSQL persistence
-- PostgreSQL repositories
 
 Current test status:
 
@@ -42,7 +42,6 @@ Current test status:
 
 Planned later:
 
-- Docker Compose
 - Redis
 - RabbitMQ or Kafka
 - CI/CD
@@ -146,6 +145,7 @@ Start API and PostgreSQL:
 ```bash
 docker compose up --build
 ```
+Database tables are created automatically when the API container starts.
 
 Check that API is running:
 
