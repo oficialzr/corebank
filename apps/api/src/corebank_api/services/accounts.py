@@ -1,28 +1,10 @@
+from corebank_api.repositories import accounts as accounts_repository
 from corebank_api.schemas.account import AccountResponse
-
-ACCOUNTS = [
-    AccountResponse(
-        id="acc-001",
-        owner_name="Alex Ivanov",
-        balance=100000,
-        currency="RUB",
-    ),
-    AccountResponse(
-        id="acc-002",
-        owner_name="Maria Petrova",
-        balance=250000,
-        currency="RUB",
-    ),
-]
 
 
 def list_accounts() -> list[AccountResponse]:
-    return ACCOUNTS
+    return accounts_repository.get_all_accounts()
 
 
 def get_account_by_id(account_id: str) -> AccountResponse | None:
-    for account in ACCOUNTS:
-        if account.id == account_id:
-            return account
-
-    return None
+    return accounts_repository.get_account_by_id(account_id)
