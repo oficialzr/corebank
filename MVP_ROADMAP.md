@@ -12,7 +12,7 @@ Anything not required for MVP goes to the Later Backlog.
 
 ## Current Phase
 
-MVP-5: PostgreSQL Persistence.
+MVP-6: Docker Compose.
 
 ## MVP Definition
 
@@ -180,6 +180,15 @@ Done criteria:
 - Transactions are stored in PostgreSQL.
 - API works after restart.
 - Tests are updated.
+
+Status: Done.
+
+Implemented:
+- Accounts are stored in PostgreSQL.
+- Transactions are stored in PostgreSQL.
+- Runtime uses PostgreSQL-only repositories.
+- In-memory repository backend was removed.
+- Tests use PostgreSQL-backed isolation.
 
 ## MVP-6: Docker Compose
 

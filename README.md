@@ -6,7 +6,7 @@ The current goal is to build a working MVP first: accounts, transfers, transacti
 
 ## Current MVP Status
 
-Current phase: **MVP-5: PostgreSQL Persistence**
+Current phase: **MVP-6: Docker Compose**
 
 Already implemented:
 
@@ -20,6 +20,8 @@ Already implemented:
 - Basic domain errors
 - Pytest test suite
 - MVP roadmap
+- PostgreSQL persistence
+- PostgreSQL repositories
 
 Current test status:
 
