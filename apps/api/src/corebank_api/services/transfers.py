@@ -7,11 +7,11 @@ from corebank_api.domain.errors import (
     SameAccountTransferError,
     SourceAccountNotFoundError,
 )
-from corebank_api.repositories.accounts import (
+from corebank_api.repositories.accounts_provider import (
     get_account_by_id,
     update_account_balance,
 )
-from corebank_api.repositories.transactions import (
+from corebank_api.repositories.transactions_provider import (
     generate_transaction_id,
     save_transaction,
 )
