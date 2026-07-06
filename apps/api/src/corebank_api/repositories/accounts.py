@@ -15,12 +15,17 @@ _INITIAL_ACCOUNTS = [
     ),
 ]
 
-ACCOUNTS = list(_INITIAL_ACCOUNTS)
+
+def _copy_initial_accounts() -> list[AccountResponse]:
+    return [account.model_copy() for account in _INITIAL_ACCOUNTS]
+
+
+ACCOUNTS = _copy_initial_accounts()
 
 
 def reset_accounts_repository() -> None:
     ACCOUNTS.clear()
-    ACCOUNTS.extend(_INITIAL_ACCOUNTS)
+    ACCOUNTS.extend(_copy_initial_accounts())
 
 
 def get_all_accounts() -> list[AccountResponse]:

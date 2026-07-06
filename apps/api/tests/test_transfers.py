@@ -22,6 +22,7 @@ def test_create_transfer_moves_money_between_accounts(client) -> None:
     assert from_account_response.json()["balance"] == 99000
     assert to_account_response.json()["balance"] == 251000
 
+
 def test_create_transfer_returns_404_for_unknown_source_account(client) -> None:
     response = client.post(
         "/transfers",
@@ -36,6 +37,7 @@ def test_create_transfer_returns_404_for_unknown_source_account(client) -> None:
     assert response.json() == {
         "detail": "Source account not found",
     }
+
 
 def test_create_transfer_returns_404_for_unknown_destination_account(client) -> None:
     response = client.post(
@@ -52,6 +54,7 @@ def test_create_transfer_returns_404_for_unknown_destination_account(client) -> 
         "detail": "Destination account not found",
     }
 
+
 def test_create_transfer_rejects_transfer_to_same_account(client) -> None:
     response = client.post(
         "/transfers",
@@ -66,6 +69,7 @@ def test_create_transfer_rejects_transfer_to_same_account(client) -> None:
     assert response.json() == {
         "detail": "Cannot transfer to same account",
     }
+
 
 def test_create_transfer_rejects_insufficient_funds(client) -> None:
     response = client.post(
@@ -82,6 +86,7 @@ def test_create_transfer_rejects_insufficient_funds(client) -> None:
         "detail": "Insufficient funds",
     }
 
+
 def test_create_transfer_rejects_zero_amount(client) -> None:
     response = client.post(
         "/transfers",
@@ -94,6 +99,7 @@ def test_create_transfer_rejects_zero_amount(client) -> None:
 
     assert response.status_code == 422
 
+
 def test_create_transfer_rejects_negative_amount(client) -> None:
     response = client.post(
         "/transfers",
@@ -105,6 +111,7 @@ def test_create_transfer_rejects_negative_amount(client) -> None:
     )
 
     assert response.status_code == 422
+
 
 def test_create_transfer_rejects_currency_mismatch(client) -> None:
     create_account_response = client.post(
