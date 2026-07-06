@@ -1,12 +1,15 @@
 import pytest
 from corebank_api.domain.errors import (
+    CurrencyMismatchError,
     DestinationAccountNotFoundError,
     InsufficientFundsError,
     SameAccountTransferError,
     SourceAccountNotFoundError,
 )
 from corebank_api.repositories.accounts import get_account_by_id
+from corebank_api.schemas.account import AccountCreateRequest
 from corebank_api.schemas.transfer import TransferCreateRequest
+from corebank_api.services.accounts import create_account
 from corebank_api.services.transfers import create_transfer
 
 
@@ -74,4 +77,22 @@ def test_create_transfer_service_rejects_insufficient_funds() -> None:
     )
 
     with pytest.raises(InsufficientFundsError):
+        create_transfer(request)
+
+
+def test_create_transfer_service_rejects_currency_mismatch() -> None:
+    usd_account = create_account(
+        AccountCreateRequest(
+            owner_name="Usd User",
+            currency="USD",
+        ),
+    )
+
+    request = TransferCreateRequest(
+        from_account_id="acc-001",
+        to_account_id=usd_account.id,
+        amount=1000,
+    )
+
+    with pytest.raises(CurrencyMismatchError):
         create_transfer(request)
