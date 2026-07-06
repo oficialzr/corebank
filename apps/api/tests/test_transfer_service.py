@@ -102,3 +102,32 @@ def test_create_transfer_service_rejects_currency_mismatch() -> None:
 
     with pytest.raises(CurrencyMismatchError):
         create_transfer(request)
+
+
+def test_create_transfer_service_rolls_back_when_transaction_save_fails(
+    monkeypatch,
+) -> None:
+    def broken_save_transaction(*args, **kwargs):
+        raise RuntimeError("transaction save failed")
+
+    monkeypatch.setattr(
+        "corebank_api.services.transfers.sql_transactions.save_transaction",
+        broken_save_transaction,
+    )
+
+    request = TransferCreateRequest(
+        from_account_id="acc-001",
+        to_account_id="acc-002",
+        amount=1000,
+    )
+
+    with pytest.raises(RuntimeError):
+        create_transfer(request)
+
+    from_account = get_account_by_id("acc-001")
+    to_account = get_account_by_id("acc-002")
+
+    assert from_account is not None
+    assert to_account is not None
+    assert from_account.balance == 100000
+    assert to_account.balance == 50000
