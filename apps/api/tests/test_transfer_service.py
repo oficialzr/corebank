@@ -7,6 +7,7 @@ from corebank_api.domain.errors import (
     SourceAccountNotFoundError,
 )
 from corebank_api.repositories.accounts import get_account_by_id
+from corebank_api.repositories.transactions import get_transaction_by_id
 from corebank_api.schemas.account import AccountCreateRequest
 from corebank_api.schemas.transfer import TransferCreateRequest
 from corebank_api.services.accounts import create_account
@@ -22,8 +23,12 @@ def test_create_transfer_service_moves_money_between_accounts() -> None:
 
     response = create_transfer(request)
 
+    transaction = get_transaction_by_id(response.transaction_id)
     from_account = get_account_by_id("acc-001")
     to_account = get_account_by_id("acc-002")
+
+    assert transaction is not None
+    assert transaction.created_at is not None
 
     assert response.transaction_id == "tx-001"
     assert response.from_account_id == "acc-001"

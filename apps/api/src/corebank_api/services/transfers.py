@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from corebank_api.domain.errors import (
     CurrencyMismatchError,
     DestinationAccountNotFoundError,
@@ -53,6 +55,7 @@ def create_transfer(request: TransferCreateRequest) -> TransferResponse:
             amount=request.amount,
             currency=from_account.currency,
             status=TransferStatus.COMPLETED,
+            created_at=datetime.now(UTC),
         ),
     )
 

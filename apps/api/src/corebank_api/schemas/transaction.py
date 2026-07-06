@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 from corebank_api.schemas.common import Currency
@@ -11,3 +13,4 @@ class TransactionResponse(BaseModel):
     amount: int
     currency: Currency
     status: TransferStatus
+    created_at: datetime
