@@ -4,7 +4,11 @@ from corebank_api.repositories.accounts import (
     get_account_by_id,
     update_account_balance,
 )
-from corebank_api.schemas.transfer import TransferCreateRequest, TransferResponse
+from corebank_api.schemas.transfer import (
+    TransferCreateRequest,
+    TransferResponse,
+    TransferStatus,
+)
 
 
 def create_transfer(request: TransferCreateRequest) -> TransferResponse:
@@ -33,5 +37,5 @@ def create_transfer(request: TransferCreateRequest) -> TransferResponse:
         from_account_id=from_account.id,
         to_account_id=to_account.id,
         amount=request.amount,
-        status="completed",
+        status=TransferStatus.COMPLETED,
     )
