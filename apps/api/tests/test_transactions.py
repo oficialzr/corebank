@@ -120,3 +120,33 @@ def test_get_transaction_returns_404_for_blank_transaction_id(client) -> None:
     assert response.json() == {
         "detail": "Transaction not found",
     }
+
+
+def test_list_transactions_returns_newest_first(client) -> None:
+    first_transaction_id = create_test_transfer(client)
+    second_transaction_id = create_test_transfer(client)
+
+    response = client.get("/transactions")
+
+    assert response.status_code == 200
+
+    transactions = response.json()
+
+    assert len(transactions) == 2
+    assert transactions[0]["id"] == second_transaction_id
+    assert transactions[1]["id"] == first_transaction_id
+
+
+def test_list_transactions_by_account_id_returns_newest_first(client) -> None:
+    first_transaction_id = create_test_transfer(client)
+    second_transaction_id = create_test_transfer(client)
+
+    response = client.get("/transactions?account_id=acc-001")
+
+    assert response.status_code == 200
+
+    transactions = response.json()
+
+    assert len(transactions) == 2
+    assert transactions[0]["id"] == second_transaction_id
+    assert transactions[1]["id"] == first_transaction_id
