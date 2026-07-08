@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: corebank
+          POSTGRES_USER: corebank
+          POSTGRES_PASSWORD: corebank
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U corebank -d corebank"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      COREBANK_DATABASE_URL: postgresql+psycopg://corebank:corebank@localhost:5433/corebank
+      PYTHONPATH: apps/api/src
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements.txt
+
+      - name: Run lint
+        run: make lint
+
+      - name: Create tables
+        run: make create-tables
+
+      - name: Run tests
+        run: make test
