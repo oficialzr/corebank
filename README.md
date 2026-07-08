@@ -19,6 +19,9 @@ Already implemented:
 - PostgreSQL repositories
 - Docker Compose setup
 - Service layer
+- Account created_at field in API responses
+- Transaction ordering by creation time
+- Concurrent-safe transfer balance updates
 - Basic domain errors
 - Pytest test suite
 - MVP roadmap
@@ -26,7 +29,7 @@ Already implemented:
 Current test status:
 
 ```bash
-46 PostgreSQL-backed tests
+49 PostgreSQL-backed tests
 ```
 
 ## Tech Stack
@@ -245,6 +248,8 @@ Transfers currently support these basic rules:
 - Transfer amount must be greater than zero
 - Successful transfer updates both balances
 - Successful transfer creates a transaction record
+- Transfer locks related account rows while updating balances
+- Concurrent transfers cannot overspend the source account
 
 ## Development Discipline
 
@@ -266,8 +271,8 @@ Main rule:
 Near-term roadmap:
 
 - Continue MVP stabilization
-- Improve database transaction safety
 - Keep README and roadmap synchronized with implemented behavior
+- Keep PostgreSQL-backed tests green
 - Avoid adding production infrastructure before the MVP is stable
 
 Long-term improvements:

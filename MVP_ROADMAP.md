@@ -172,7 +172,7 @@ Required:
 - PostgreSQL integration.
 - Database models.
 - Repositories using database.
-- Migrations.
+- Automatic table creation for local MVP runs.
 
 Done criteria:
 
@@ -233,6 +233,10 @@ Implemented:
 - Transaction API tests use created transaction IDs instead of hardcoded sequential IDs.
 - Account IDs are generated with UUID values.
 - Account ID generation no longer depends on the number of existing accounts.
+- Account API responses include `created_at`.
+- Transaction lists are ordered by `created_at` descending.
+- Account rows are locked during transfer balance updates.
+- Concurrent overspending is covered by a service test.
 
 ## Later Backlog
 
@@ -246,8 +250,8 @@ These tasks are useful, but not part of MVP:
 - Message broker.
 - Kafka/RabbitMQ events.
 - CI/CD.
-- Linters.
-- Formatters.
+- Pre-commit hooks.
+- CI quality checks.
 - Pre-commit hooks.
 - Observability.
 - Prometheus.
