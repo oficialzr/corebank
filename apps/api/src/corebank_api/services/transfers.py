@@ -19,14 +19,24 @@ from corebank_api.schemas.transfer import (
 
 def create_transfer(request: TransferCreateRequest) -> TransferResponse:
     with SessionLocal() as session:
-        from_account = sql_accounts.get_account_by_id(
-            session,
-            request.from_account_id,
+        account_ids_to_lock = sorted(
+            [
+                request.from_account_id,
+                request.to_account_id,
+            ]
         )
-        to_account = sql_accounts.get_account_by_id(
-            session,
-            request.to_account_id,
-        )
+
+        locked_accounts = {}
+
+        for account_id in account_ids_to_lock:
+            locked_account = sql_accounts.get_account_by_id_for_update(
+                session,
+                account_id,
+            )
+            locked_accounts[account_id] = locked_account
+
+        from_account = locked_accounts[request.from_account_id]
+        to_account = locked_accounts[request.to_account_id]
 
         if from_account is None:
             raise SourceAccountNotFoundError

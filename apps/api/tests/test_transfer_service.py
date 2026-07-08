@@ -1,4 +1,8 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
+from corebank_api.database.models import AccountModel
+from corebank_api.database.session import SessionLocal
 from corebank_api.domain.errors import (
     CurrencyMismatchError,
     DestinationAccountNotFoundError,
@@ -136,3 +140,49 @@ def test_create_transfer_service_rolls_back_when_transaction_save_fails(
     assert to_account is not None
     assert from_account.balance == 100000
     assert to_account.balance == 50000
+
+
+def set_account_balance(account_id: str, balance: int) -> None:
+    with SessionLocal() as session:
+        account = session.get(AccountModel, account_id)
+
+        assert account is not None
+
+        account.balance = balance
+        session.commit()
+
+
+def test_create_transfer_service_prevents_concurrent_overspending() -> None:
+    set_account_balance("acc-001", 1000)
+
+    request = TransferCreateRequest(
+        from_account_id="acc-001",
+        to_account_id="acc-002",
+        amount=800,
+    )
+
+    def run_transfer():
+        try:
+            create_transfer(request)
+            return "completed"
+        except InsufficientFundsError:
+            return "insufficient_funds"
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(
+            executor.map(
+                lambda _: run_transfer(),
+                range(2),
+            )
+        )
+
+    from_account = get_account_by_id("acc-001")
+    to_account = get_account_by_id("acc-002")
+
+    assert sorted(results) == ["completed", "insufficient_funds"]
+
+    assert from_account is not None
+    assert to_account is not None
+
+    assert from_account.balance == 200
+    assert to_account.balance == 50800

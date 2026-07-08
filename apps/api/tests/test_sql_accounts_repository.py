@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+
 from corebank_api.database.models import AccountModel
 from corebank_api.database.session import SessionLocal
 from corebank_api.repositories.sql_accounts import (

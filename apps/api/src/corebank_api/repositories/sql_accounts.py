@@ -28,6 +28,23 @@ def get_account_by_id(session: Session, account_id: str) -> AccountResponse | No
     return model_to_schema(account)
 
 
+def get_account_by_id_for_update(
+    session: Session,
+    account_id: str,
+) -> AccountResponse | None:
+    account = (
+        session.query(AccountModel)
+        .filter(AccountModel.id == account_id)
+        .with_for_update()
+        .one_or_none()
+    )
+
+    if account is None:
+        return None
+
+    return model_to_schema(account)
+
+
 def save_account(session: Session, account: AccountResponse) -> AccountResponse:
     account_model = AccountModel(
         id=account.id,
