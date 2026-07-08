@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from corebank_api.repositories import accounts_provider as accounts_repository
@@ -18,6 +19,7 @@ def create_account(request: AccountCreateRequest) -> AccountResponse:
         owner_name=request.owner_name,
         balance=0,
         currency=request.currency,
+        created_at=datetime.now(UTC),
     )
 
     return accounts_repository.save_account(account)

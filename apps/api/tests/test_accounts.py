@@ -10,18 +10,21 @@ def test_list_accounts_returns_accounts(client) -> None:
     assert accounts[0]["owner_name"] == "Alex Ivanov"
     assert accounts[0]["balance"] == 100000
     assert accounts[0]["currency"] == "RUB"
+    assert accounts[0]["created_at"] is not None
 
 
 def test_get_account_returns_account_by_id(client) -> None:
     response = client.get("/accounts/acc-001")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "id": "acc-001",
-        "owner_name": "Alex Ivanov",
-        "balance": 100000,
-        "currency": "RUB",
-    }
+
+    account = response.json()
+
+    assert account["id"] == "acc-001"
+    assert account["owner_name"] == "Alex Ivanov"
+    assert account["balance"] == 100000
+    assert account["currency"] == "RUB"
+    assert account["created_at"] is not None
 
 
 def test_get_account_returns_404_for_unknown_account(client) -> None:
@@ -50,6 +53,7 @@ def test_create_account_returns_created_account(client) -> None:
     assert account["owner_name"] == "Ivan Sidorov"
     assert account["balance"] == 0
     assert account["currency"] == "RUB"
+    assert account["created_at"] is not None
 
 
 def test_create_account_rejects_empty_owner_name(client) -> None:

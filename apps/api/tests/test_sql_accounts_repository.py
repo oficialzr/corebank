@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from corebank_api.database.models import AccountModel
 from corebank_api.database.session import SessionLocal
 from corebank_api.repositories.sql_accounts import (
@@ -23,6 +24,7 @@ def test_sql_accounts_repository_saves_and_reads_account() -> None:
                 owner_name="SQL Test User",
                 balance=5000,
                 currency="RUB",
+                created_at=datetime.now(UTC),
             )
 
             save_account(session, account)
@@ -34,6 +36,7 @@ def test_sql_accounts_repository_saves_and_reads_account() -> None:
             assert found_account.owner_name == "SQL Test User"
             assert found_account.balance == 5000
             assert found_account.currency == "RUB"
+            assert found_account.created_at is not None
 
             accounts = get_all_accounts(session)
 

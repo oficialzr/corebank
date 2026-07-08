@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from corebank_api.schemas.common import Currency
@@ -15,3 +17,4 @@ class AccountResponse(BaseModel):
     owner_name: str
     balance: int
     currency: str
+    created_at: datetime

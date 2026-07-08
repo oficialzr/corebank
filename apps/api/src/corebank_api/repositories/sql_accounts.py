@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-
 from sqlalchemy.orm import Session
 
 from corebank_api.database.models import AccountModel
@@ -12,6 +10,7 @@ def model_to_schema(account: AccountModel) -> AccountResponse:
         owner_name=account.owner_name,
         balance=account.balance,
         currency=account.currency,
+        created_at=account.created_at,
     )
 
 
@@ -35,7 +34,7 @@ def save_account(session: Session, account: AccountResponse) -> AccountResponse:
         owner_name=account.owner_name,
         balance=account.balance,
         currency=str(account.currency),
-        created_at=datetime.now(UTC),
+        created_at=account.created_at,
     )
 
     session.add(account_model)
