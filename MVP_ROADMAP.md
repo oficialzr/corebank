@@ -180,6 +180,7 @@ Done criteria:
 - Transactions are stored in PostgreSQL.
 - API works after restart.
 - Tests are updated.
+- Alembic migrations.
 
 Status: Done.
 
@@ -189,6 +190,9 @@ Implemented:
 - Runtime uses PostgreSQL-only repositories.
 - In-memory repository backend was removed.
 - Tests use PostgreSQL-backed isolation.
+- Initial Alembic migration creates accounts and transactions tables.
+- Docker Compose applies migrations before API startup.
+- CI applies migrations before running tests.
 
 ## MVP-6: Docker Compose
 

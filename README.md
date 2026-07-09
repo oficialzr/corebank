@@ -25,6 +25,7 @@ Already implemented:
 - Basic domain errors
 - Pytest test suite
 - MVP roadmap
+- Alembic migrations
 
 Current test status:
 
@@ -147,7 +148,7 @@ Start API and PostgreSQL:
 ```bash
 docker compose up --build
 ```
-Database tables are created automatically when the API container starts.
+Database migrations are applied automatically when the API container starts.
 
 Check that API is running:
 
