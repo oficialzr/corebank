@@ -9,6 +9,7 @@ from corebank_api.api.transfers import router as transfers_router
 def create_app() -> FastAPI:
     app = FastAPI(
         title="CoreBank API",
+        description="Production-like banking backend API built with FastAPI, PostgreSQL, Docker, Alembic, and CI.",
         version="0.1.0",
     )
 

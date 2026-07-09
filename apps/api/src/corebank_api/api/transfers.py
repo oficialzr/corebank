@@ -11,7 +11,7 @@ from corebank_api.domain.errors import (
 from corebank_api.schemas.transfer import TransferCreateRequest, TransferResponse
 from corebank_api.services.transfers import create_transfer
 
-router = APIRouter(prefix="/transfers", tags=["transfers"])
+router = APIRouter(prefix="/transfers", tags=["Transfers"])
 
 
 TRANSFER_ERROR_TO_HTTP_RESPONSE = {

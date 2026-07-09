@@ -7,7 +7,7 @@ from corebank_api.services.transactions import (
     list_transactions_by_account_id,
 )
 
-router = APIRouter(prefix="/transactions", tags=["transactions"])
+router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 
 @router.get("", response_model=list[TransactionResponse])

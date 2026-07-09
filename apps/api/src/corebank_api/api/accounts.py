@@ -7,7 +7,7 @@ from corebank_api.services.accounts import (
     list_accounts,
 )
 
-router = APIRouter(prefix="/accounts", tags=["accounts"])
+router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
 
 @router.get("", response_model=list[AccountResponse])

@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from corebank_api.core.config import settings
 
-router = APIRouter(tags=["service"])
+router = APIRouter(tags=["System"])
 
 
 @router.get("/health")
