@@ -15,9 +15,7 @@ from sqlalchemy.exc import OperationalError
 def test_sql_accounts_repository_saves_and_reads_account() -> None:
     try:
         with SessionLocal() as session:
-            session.query(AccountModel).filter(
-                AccountModel.id == "acc-test-001"
-            ).delete()
+            session.query(AccountModel).filter(AccountModel.id == "acc-test-001").delete()
             session.commit()
 
             account = AccountResponse(
@@ -50,9 +48,7 @@ def test_sql_accounts_repository_saves_and_reads_account() -> None:
             assert updated_account is not None
             assert updated_account.balance == 7777
 
-            session.query(AccountModel).filter(
-                AccountModel.id == "acc-test-001"
-            ).delete()
+            session.query(AccountModel).filter(AccountModel.id == "acc-test-001").delete()
             session.commit()
     except OperationalError:
         return

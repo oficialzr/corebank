@@ -10,9 +10,7 @@ def get_all_transactions() -> list[TransactionResponse]:
 
 def get_transaction_by_id(transaction_id: str) -> TransactionResponse | None:
     with SessionLocal() as session:
-        return sql_transactions_repository.get_transaction_by_id(
-            session, transaction_id
-        )
+        return sql_transactions_repository.get_transaction_by_id(session, transaction_id)
 
 
 def get_transactions_by_account_id(account_id: str) -> list[TransactionResponse]:

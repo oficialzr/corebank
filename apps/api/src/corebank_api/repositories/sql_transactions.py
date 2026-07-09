@@ -20,11 +20,7 @@ def model_to_schema(transaction: TransactionModel) -> TransactionResponse:
 
 
 def get_all_transactions(session: Session) -> list[TransactionResponse]:
-    transactions = (
-        session.query(TransactionModel)
-        .order_by(TransactionModel.created_at.desc())
-        .all()
-    )
+    transactions = session.query(TransactionModel).order_by(TransactionModel.created_at.desc()).all()
     return [model_to_schema(transaction) for transaction in transactions]
 
 
@@ -47,8 +43,7 @@ def get_transactions_by_account_id(
     transactions = (
         session.query(TransactionModel)
         .filter(
-            (TransactionModel.from_account_id == account_id)
-            | (TransactionModel.to_account_id == account_id),
+            (TransactionModel.from_account_id == account_id) | (TransactionModel.to_account_id == account_id),
         )
         .order_by(TransactionModel.created_at.desc())
         .all()
