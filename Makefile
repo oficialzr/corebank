@@ -1,4 +1,4 @@
-.PHONY: run-api run-api-test-env test lint format fix check create-tables docker-up docker-down docker-ps docker-logs-api
+.PHONY: run-api run-api-test-env test lint format fix check migrate docker-up docker-down docker-ps docker-logs-api
 
 TEST_DATABASE_URL=postgresql+psycopg://corebank:corebank@localhost:5433/corebank
 
@@ -26,8 +26,8 @@ check:
 	ruff check apps/api/src apps/api/tests
 	COREBANK_DATABASE_URL=$(TEST_DATABASE_URL) pytest
 
-create-tables:
-	COREBANK_DATABASE_URL=$(TEST_DATABASE_URL) PYTHONPATH=apps/api/src python apps/api/scripts/create_tables.py
+migrate:
+	COREBANK_DATABASE_URL=$(TEST_DATABASE_URL) PYTHONPATH=apps/api/src alembic -c apps/api/alembic.ini upgrade head
 
 docker-up:
 	docker compose up -d --build

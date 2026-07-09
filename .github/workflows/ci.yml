@@ -45,7 +45,7 @@ jobs:
         run: make lint
 
       - name: Create tables
-        run: make create-tables
+        run: make migrate
 
       - name: Run tests
         run: make test

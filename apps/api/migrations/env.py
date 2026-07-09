@@ -9,7 +9,11 @@ from sqlalchemy import pool
 from alembic import context
 
 
-sys.path.append(os.path.abspath("apps/api/src"))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+api_dir = os.path.dirname(current_dir)
+src_dir = os.path.join(api_dir, "src")
+
+sys.path.append(src_dir)
 
 
 from corebank_api.database.models import AccountModel, TransactionModel
@@ -20,6 +24,11 @@ from corebank_api.database.session import Base
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+database_url = os.getenv("COREBANK_DATABASE_URL")
+
+if database_url is not None:
+    config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
