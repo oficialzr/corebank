@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
+from corebank_api.errors import api_error
 from corebank_api.schemas.account import AccountCreateRequest, AccountResponse
 from corebank_api.services.accounts import (
     create_account,
@@ -20,9 +21,10 @@ def get_account_endpoint(account_id: str) -> AccountResponse:
     account = get_account_by_id(account_id)
 
     if account is None:
-        raise HTTPException(
+        raise api_error(
             status_code=404,
-            detail="Account not found",
+            code="account_not_found",
+            message="Account not found",
         )
 
     return account

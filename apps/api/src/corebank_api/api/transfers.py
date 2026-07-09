@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from corebank_api.domain.errors import (
     CurrencyMismatchError,
@@ -8,6 +8,7 @@ from corebank_api.domain.errors import (
     SourceAccountNotFoundError,
     TransferError,
 )
+from corebank_api.errors import api_error
 from corebank_api.schemas.transfer import TransferCreateRequest, TransferResponse
 from corebank_api.services.transfers import create_transfer
 
@@ -38,12 +39,13 @@ TRANSFER_ERROR_TO_HTTP_RESPONSE = {
 }
 
 
-def map_transfer_error_to_http_exception(error: TransferError) -> HTTPException:
+def map_transfer_error_to_http_exception(error: TransferError) -> api_error:
     status_code, detail = TRANSFER_ERROR_TO_HTTP_RESPONSE[type(error)]
 
-    return HTTPException(
+    raise api_error(
         status_code=status_code,
-        detail=detail,
+        code="transfer_error",
+        message=detail,
     )
 
 
