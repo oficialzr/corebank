@@ -3,7 +3,7 @@ testpaths = ["apps/api/tests"]
 pythonpath = ["apps/api/src"]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
