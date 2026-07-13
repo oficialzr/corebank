@@ -241,6 +241,11 @@ Implemented:
 - Transaction lists are ordered by `created_at` descending.
 - Account rows are locked during transfer balance updates.
 - Concurrent overspending is covered by a service test.
+- API errors use a consistent response structure.
+- Business errors expose stable machine-readable codes.
+- Transfer errors use separate codes for each failure reason.
+- Error response schemas are documented in OpenAPI.
+- API tests validate complete error responses.
 
 ## Later Backlog
 
@@ -263,9 +268,7 @@ These tasks are useful, but not part of MVP:
 - Kubernetes.
 - Load testing.
 - Idempotency.
-- Better error model.
 - Advanced validation.
-- OpenAPI polishing.
 
 ## Development Discipline
 

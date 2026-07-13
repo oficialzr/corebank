@@ -40,7 +40,12 @@ def test_create_transfer_returns_404_for_unknown_source_account(client) -> None:
     )
 
     assert response.status_code == 404
-    assert response.json()["detail"]["message"] == "Source account not found"
+    assert response.json() == {
+        "detail": {
+            "code": "source_account_not_found",
+            "message": "Source account not found",
+        }
+    }
 
 
 def test_create_transfer_returns_404_for_unknown_destination_account(client) -> None:
@@ -54,7 +59,12 @@ def test_create_transfer_returns_404_for_unknown_destination_account(client) -> 
     )
 
     assert response.status_code == 404
-    assert response.json()["detail"]["message"] == "Destination account not found"
+    assert response.json() == {
+        "detail": {
+            "code": "destination_account_not_found",
+            "message": "Destination account not found",
+        }
+    }
 
 
 def test_create_transfer_rejects_transfer_to_same_account(client) -> None:
@@ -68,7 +78,12 @@ def test_create_transfer_rejects_transfer_to_same_account(client) -> None:
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"]["message"] == "Cannot transfer to same account"
+    assert response.json() == {
+        "detail": {
+            "code": "same_account_transfer",
+            "message": "Cannot transfer to same account",
+        }
+    }
 
 
 def test_create_transfer_rejects_insufficient_funds(client) -> None:
@@ -82,7 +97,12 @@ def test_create_transfer_rejects_insufficient_funds(client) -> None:
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"]["message"] == "Insufficient funds"
+    assert response.json() == {
+        "detail": {
+            "code": "insufficient_funds",
+            "message": "Insufficient funds",
+        }
+    }
 
 
 def test_create_transfer_rejects_zero_amount(client) -> None:
@@ -132,7 +152,12 @@ def test_create_transfer_rejects_currency_mismatch(client) -> None:
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"]["message"] == "Currency mismatch"
+    assert response.json() == {
+        "detail": {
+            "code": "currency_mismatch",
+            "message": "Currency mismatch",
+        }
+    }
 
 
 def test_create_transfer_returns_next_transaction_id(client) -> None:

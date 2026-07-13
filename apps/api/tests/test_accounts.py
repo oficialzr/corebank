@@ -31,7 +31,12 @@ def test_get_account_returns_404_for_unknown_account(client) -> None:
     response = client.get("/accounts/acc-999")
 
     assert response.status_code == 404
-    assert response.json()["detail"]["message"] == "Account not found"
+    assert response.json() == {
+        "detail": {
+            "code": "account_not_found",
+            "message": "Account not found",
+        }
+    }
 
 
 def test_create_account_returns_created_account(client) -> None:

@@ -69,7 +69,12 @@ def test_get_transaction_returns_404_for_unknown_transaction(client) -> None:
     response = client.get("/transactions/tx-unknown")
 
     assert response.status_code == 404
-    assert response.json()["detail"]["message"] == "Transaction not found"
+    assert response.json() == {
+        "detail": {
+            "code": "transaction_not_found",
+            "message": "Transaction not found",
+        }
+    }
 
 
 def test_list_transactions_filters_by_account_id(client) -> None:
@@ -115,7 +120,12 @@ def test_get_transaction_returns_404_for_blank_transaction_id(client) -> None:
     response = client.get("/transactions/%20%20%20")
 
     assert response.status_code == 404
-    assert response.json()["detail"]["message"] == "Transaction not found"
+    assert response.json() == {
+        "detail": {
+            "code": "transaction_not_found",
+            "message": "Transaction not found",
+        }
+    }
 
 
 def test_list_transactions_returns_newest_first(client) -> None:

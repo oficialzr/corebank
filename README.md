@@ -26,6 +26,9 @@ Already implemented:
 - Pytest test suite
 - MVP roadmap
 - Alembic migrations
+- Standardized API error responses
+- Stable machine-readable error codes
+- Error response schemas in OpenAPI
 
 Current test status:
 
@@ -179,7 +182,7 @@ pytest
 Expected result:
 
 ```text
-46 passed
+49 passed
 ```
 
 ## API Endpoints
