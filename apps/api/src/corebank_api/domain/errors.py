@@ -20,3 +20,11 @@ class CurrencyMismatchError(TransferError):
 
 class InsufficientFundsError(TransferError):
     pass
+
+
+class UserError(Exception):
+    pass
+
+
+class EmailAlreadyRegisteredError(UserError):
+    pass

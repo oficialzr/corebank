@@ -16,7 +16,11 @@ src_dir = os.path.join(api_dir, "src")
 sys.path.append(src_dir)
 
 
-from corebank_api.database.models import AccountModel, TransactionModel
+from corebank_api.database.models import (
+    AccountModel,
+    TransactionModel,
+    UserModel,
+)
 from corebank_api.database.session import Base
 
 

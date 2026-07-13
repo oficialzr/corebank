@@ -1,7 +1,11 @@
 from datetime import UTC, datetime
 
 import pytest
-from corebank_api.database.models import AccountModel, TransactionModel
+from corebank_api.database.models import (
+    AccountModel,
+    TransactionModel,
+    UserModel,
+)
 from corebank_api.database.session import SessionLocal
 from corebank_api.main import create_app
 from fastapi.testclient import TestClient
@@ -12,6 +16,7 @@ def reset_postgres_test_data() -> None:
     with SessionLocal() as session:
         session.query(TransactionModel).delete(synchronize_session=False)
         session.query(AccountModel).delete(synchronize_session=False)
+        session.query(UserModel).delete(synchronize_session=False)
 
         session.add_all(
             [
