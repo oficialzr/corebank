@@ -1,6 +1,9 @@
 [tool.pytest.ini_options]
 testpaths = ["apps/api/tests"]
 pythonpath = ["apps/api/src"]
+markers = [
+    "db: marks tests that require PostgreSQL",
+]
 
 [tool.ruff]
 line-length = 120

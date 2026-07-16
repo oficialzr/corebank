@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+import pytest
 from corebank_api.database.models import AccountModel
 from corebank_api.database.session import SessionLocal
 from corebank_api.repositories.sql_accounts import (
@@ -10,6 +11,8 @@ from corebank_api.repositories.sql_accounts import (
 )
 from corebank_api.schemas.account import AccountResponse
 from sqlalchemy.exc import OperationalError
+
+pytestmark = pytest.mark.db
 
 
 def test_sql_accounts_repository_saves_and_reads_account() -> None:

@@ -17,6 +17,8 @@ from corebank_api.schemas.transfer import TransferCreateRequest
 from corebank_api.services.accounts import create_account
 from corebank_api.services.transfers import create_transfer
 
+pytestmark = pytest.mark.db
+
 
 def assert_transaction_id_format(transaction_id: str) -> None:
     assert transaction_id.startswith("tx-")

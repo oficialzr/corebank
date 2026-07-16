@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+import pytest
 from corebank_api.repositories.transactions_provider import save_transaction
 from corebank_api.schemas.common import Currency
 from corebank_api.schemas.transaction import TransactionResponse
@@ -9,6 +10,8 @@ from corebank_api.services.transactions import (
     list_transactions,
     list_transactions_by_account_id,
 )
+
+pytestmark = pytest.mark.db
 
 
 def test_list_transactions_service_returns_transactions() -> None:

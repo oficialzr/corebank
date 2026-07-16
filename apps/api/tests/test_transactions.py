@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.db
+
+
 def assert_transaction_id_format(transaction_id: str) -> None:
     assert transaction_id.startswith("tx-")
     assert len(transaction_id) > len("tx-")

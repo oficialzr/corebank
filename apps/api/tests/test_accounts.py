@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.db
+
+
 def test_list_accounts_returns_accounts(client) -> None:
     response = client.get("/accounts")
 

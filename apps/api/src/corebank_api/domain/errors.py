@@ -28,3 +28,7 @@ class UserError(Exception):
 
 class EmailAlreadyRegisteredError(UserError):
     pass
+
+
+class InvalidCredentialsError(UserError):
+    pass

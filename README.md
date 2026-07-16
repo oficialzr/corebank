@@ -2,58 +2,70 @@
 
 CoreBank is a training backend project that simulates a small banking system.
 
-The current goal is to build a working MVP first: accounts, transfers, transactions, tests and clear local run instructions. Production-like infrastructure will be added later only when the MVP is stable.
+The project is currently focused on a working MVP: accounts, transfers,
+transactions, PostgreSQL persistence, local Docker setup, automated migrations,
+tests, and a basic JWT authentication layer.
 
-## Current MVP Status
+## Current Status
 
-Current phase: **MVP Core completed. Next phase: MVP stabilization**
+Current phase: **Core banking MVP is implemented. Stabilization and auth
+foundation are in progress.**
 
-Already implemented:
+Implemented:
 
-- FastAPI application startup
-- Health and version endpoints
+- FastAPI application with `/health` and `/version`
 - Account API
 - Transfer API
 - Transaction API
-- PostgreSQL persistence
-- PostgreSQL repositories
-- Docker Compose setup
-- Service layer
-- Account created_at field in API responses
-- Transaction ordering by creation time
-- Concurrent-safe transfer balance updates
-- Basic domain errors
-- Pytest test suite
-- MVP roadmap
-- Alembic migrations
-- Standardized API error responses
-- Stable machine-readable error codes
-- Error response schemas in OpenAPI
+- User registration API
+- User login API
+- Bearer token authentication with JWT
+- Current user endpoint
+- Password hashing with `pwdlib[argon2]`
+- PostgreSQL persistence through SQLAlchemy repositories
+- Alembic migrations for users, accounts, and transactions
+- Docker Compose setup for API and PostgreSQL
+- Makefile commands for common development tasks
+- CI workflow with PostgreSQL service, lint, migrations, and tests
+- Standardized business error responses with stable error codes
+- OpenAPI error response schemas for custom API errors
+- PostgreSQL-backed test suite
 
-Current test status:
+Not implemented yet:
 
-```bash
-49 PostgreSQL-backed tests
+- Fine-grained authorization on banking endpoints
+- Account ownership links between users and accounts
+- Cards
+- Audit events
+- Idempotency keys
+- Redis
+- Message broker and workers
+- Monitoring
+- Kubernetes
+
+Current test inventory:
+
+```text
+67 tests collected
 ```
+
+The tests require a reachable PostgreSQL database. In this environment the test
+suite was collected successfully, but the tests were skipped because PostgreSQL
+was not available.
 
 ## Tech Stack
 
-- Python
+- Python 3.12+
 - FastAPI
 - Pydantic
-- PostgreSQL
 - SQLAlchemy
+- PostgreSQL
+- Alembic
 - Pytest
+- HTTPX
 - Ruff
 - Uvicorn
-
-Planned later:
-
-- Redis
-- RabbitMQ or Kafka
-- CI/CD
-- Monitoring
-- Kubernetes
+- Docker Compose
 
 ## Project Structure
 
@@ -61,18 +73,23 @@ Planned later:
 corebank/
 ├── apps/
 │   └── api/
+│       ├── migrations/
 │       ├── src/
 │       │   └── corebank_api/
 │       │       ├── api/
 │       │       ├── core/
+│       │       ├── database/
 │       │       ├── domain/
 │       │       ├── repositories/
 │       │       ├── schemas/
 │       │       ├── services/
 │       │       └── main.py
 │       ├── tests/
+│       ├── Dockerfile
 │       └── requirements.txt
 ├── docs/
+├── docker-compose.yml
+├── Makefile
 ├── MVP_ROADMAP.md
 ├── pyproject.toml
 └── README.md
@@ -80,9 +97,7 @@ corebank/
 
 ## MVP Scope
 
-The MVP includes only the minimum features required to demonstrate the core banking flow.
-
-Included in MVP:
+The core banking MVP includes:
 
 - Create accounts
 - List accounts
@@ -92,20 +107,13 @@ Included in MVP:
 - List transactions
 - Get transaction by id
 - Filter transactions by account id
-- Run tests locally
-- Start API locally
-
-Not included before MVP is stable:
-
-- Authentication
-- Authorization
-- Redis
-- Message brokers
-- CI/CD
-- Monitoring
-- Kubernetes
-- Advanced validation
-- Complex architecture refactoring
+- Store users for registration
+- Hash user passwords before saving
+- Issue JWT access tokens
+- Read the current user from a bearer token
+- Run migrations
+- Run tests locally and in CI
+- Start the API locally or with Docker Compose
 
 The detailed roadmap is stored in [MVP_ROADMAP.md](MVP_ROADMAP.md).
 
@@ -124,13 +132,15 @@ Install dependencies:
 pip install -r apps/api/requirements.txt
 ```
 
-## Run API
+## Run with Docker Compose
 
-Start the FastAPI application:
+Start API and PostgreSQL:
 
 ```bash
-uvicorn corebank_api.main:app --reload --app-dir apps/api/src
+docker compose up --build
 ```
+
+The API container applies Alembic migrations before starting Uvicorn.
 
 The API will be available at:
 
@@ -144,54 +154,100 @@ Swagger UI:
 http://127.0.0.1:8000/docs
 ```
 
-## Run with Docker Compose
-
-Start API and PostgreSQL:
-
-```bash
-docker compose up --build
-```
-Database migrations are applied automatically when the API container starts.
-
-Check that API is running:
-
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-Check accounts endpoint:
-
-```bash
-curl http://127.0.0.1:8000/accounts
-```
-
 Stop containers:
 
 ```bash
 docker compose down
 ```
 
-## Run Tests
+## Run API Locally
 
-Run the full test suite:
+When running the API outside Docker, make sure PostgreSQL is available and the
+database schema is migrated.
 
-```bash
-pytest
-```
-
-Expected result:
+The default local database URL is:
 
 ```text
-49 passed
+postgresql+psycopg://corebank:corebank@localhost:5432/corebank
+```
+
+The Makefile test database URL points to Docker Compose PostgreSQL on port
+`5433`:
+
+```text
+postgresql+psycopg://corebank:corebank@localhost:5433/corebank
+```
+
+If you want to run the API locally against the Docker Compose PostgreSQL
+container, export the same database URL:
+
+```bash
+export COREBANK_DATABASE_URL=postgresql+psycopg://corebank:corebank@localhost:5433/corebank
+```
+
+Apply migrations:
+
+```bash
+make migrate
+```
+
+Start the FastAPI application:
+
+```bash
+make run-api
+```
+
+Equivalent direct command:
+
+```bash
+uvicorn corebank_api.main:app --reload --app-dir apps/api/src
+```
+
+## Run Tests
+
+Start PostgreSQL first, then run migrations and tests:
+
+```bash
+docker compose up -d postgres
+make migrate
+make test
+```
+
+Run lint and tests together:
+
+```bash
+make check
 ```
 
 ## API Endpoints
 
-### Service
+### System
 
 ```text
 GET /health
 GET /version
+```
+
+### Authentication
+
+```text
+POST /auth/register
+POST /auth/login
+GET /auth/me
+```
+
+Example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alex@example.com","password":"strong-password","full_name":"Alex Ivanov"}'
+```
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alex@example.com","password":"strong-password"}'
 ```
 
 ### Accounts
@@ -202,7 +258,7 @@ GET /accounts/{account_id}
 POST /accounts
 ```
 
-Example request:
+Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/accounts \
@@ -216,7 +272,7 @@ curl -X POST http://127.0.0.1:8000/accounts \
 POST /transfers
 ```
 
-Example request:
+Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/transfers \
@@ -242,51 +298,60 @@ curl "http://127.0.0.1:8000/transactions?account_id=acc-001"
 
 ## Current Business Rules
 
-Transfers currently support these basic rules:
+Accounts:
 
-- Source account must exist
-- Destination account must exist
-- Source and destination accounts must be different
-- Accounts must use the same currency
-- Source account must have enough money
-- Transfer amount must be greater than zero
-- Successful transfer updates both balances
-- Successful transfer creates a transaction record
-- Transfer locks related account rows while updating balances
-- Concurrent transfers cannot overspend the source account
+- Account owner name must not be blank.
+- Account currency must be one of `RUB`, `USD`, or `EUR`.
+- New accounts start with zero balance.
+- Account IDs are UUID-based values with the `acc-` prefix.
 
-## Development Discipline
+Transfers:
 
-CoreBank is developed through MVP phases.
+- Source account must exist.
+- Destination account must exist.
+- Source and destination accounts must be different.
+- Accounts must use the same currency.
+- Source account must have enough money.
+- Transfer amount must be greater than zero.
+- Successful transfer updates both balances.
+- Successful transfer creates a transaction record.
+- Related account rows are locked during balance updates.
+- Concurrent transfers cannot overspend the source account.
 
-Before starting a task, define:
+Transactions:
 
-- Current MVP phase
-- Exact task
-- What is out of scope
-- Done criteria
+- Transaction IDs are UUID-based values with the `tx-` prefix.
+- Transaction lists are ordered by `created_at` descending.
+- Transactions can be filtered by source or destination account id.
 
-Main rule:
+Users:
 
-> If a task does not move the project toward MVP, it goes to the Later Backlog.
+- Registration normalizes email to lowercase.
+- Passwords are stored as hashes, not as plain text.
+- Login returns a bearer access token.
+- `/auth/me` requires a valid bearer token.
+- Duplicate email registration returns a stable `email_already_registered`
+  error code.
+- Invalid login returns a stable `invalid_credentials` error code.
+- Invalid or expired token returns a stable `invalid_token` error code.
 
 ## Next Steps
 
-Near-term roadmap:
+Near-term:
 
-- Continue MVP stabilization
-- Keep README and roadmap synchronized with implemented behavior
-- Keep PostgreSQL-backed tests green
-- Avoid adding production infrastructure before the MVP is stable
+- Keep the PostgreSQL-backed test suite green.
+- Decide how users should own accounts.
+- Protect banking write operations once authorization exists.
+- Keep README and roadmap synchronized with implemented behavior.
 
-Long-term improvements:
+Later:
 
-- Authentication and authorization
-- Persistent database migrations
-- Message broker integration
-- Background workers
+- Cards
+- Audit events
+- Idempotency for transfers
+- Redis
+- Message broker and workers
 - Observability
-- CI/CD
 - Kubernetes deployment
 
 ## License

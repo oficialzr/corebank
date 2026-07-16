@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+import pytest
 from corebank_api.database.models import TransactionModel
 from corebank_api.database.session import SessionLocal
 from corebank_api.repositories.sql_transactions import (
@@ -12,6 +13,8 @@ from corebank_api.schemas.common import Currency
 from corebank_api.schemas.transaction import TransactionResponse
 from corebank_api.schemas.transfer import TransferStatus
 from sqlalchemy.exc import OperationalError
+
+pytestmark = pytest.mark.db
 
 
 def test_sql_transactions_repository_saves_and_reads_transaction() -> None:

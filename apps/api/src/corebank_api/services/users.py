@@ -1,18 +1,34 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from corebank_api.core.security import hash_password
-from corebank_api.domain.errors import EmailAlreadyRegisteredError
+from corebank_api.core.security import create_access_token, hash_password, verify_password
+from corebank_api.domain.errors import EmailAlreadyRegisteredError, InvalidCredentialsError
 from corebank_api.repositories import users_provider
 from corebank_api.schemas.user import (
+    TokenResponse,
+    UserLoginRequest,
     UserRecord,
     UserRegisterRequest,
     UserResponse,
 )
 
 
+def normalize_email(email: str) -> str:
+    return email.lower()
+
+
+def to_user_response(user: UserRecord) -> UserResponse:
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        is_active=user.is_active,
+        created_at=user.created_at,
+    )
+
+
 def register_user(request: UserRegisterRequest) -> UserResponse:
-    normalized_email = str(request.email).lower()
+    normalized_email = normalize_email(str(request.email))
 
     existing_user = users_provider.get_user_by_email(normalized_email)
 
@@ -30,10 +46,26 @@ def register_user(request: UserRegisterRequest) -> UserResponse:
 
     saved_user = users_provider.save_user(user)
 
-    return UserResponse(
-        id=saved_user.id,
-        email=saved_user.email,
-        full_name=saved_user.full_name,
-        is_active=saved_user.is_active,
-        created_at=saved_user.created_at,
+    return to_user_response(saved_user)
+
+
+def login_user(request: UserLoginRequest) -> TokenResponse:
+    normalized_email = normalize_email(str(request.email))
+    user = users_provider.get_user_by_email(normalized_email)
+
+    if user is None or not verify_password(request.password, user.password_hash):
+        raise InvalidCredentialsError
+
+    return TokenResponse(
+        access_token=create_access_token(user.email),
+        token_type="bearer",
     )
+
+
+def get_user_by_email(email: str) -> UserResponse | None:
+    user = users_provider.get_user_by_email(normalize_email(email))
+
+    if user is None:
+        return None
+
+    return to_user_response(user)

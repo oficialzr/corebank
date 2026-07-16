@@ -1,7 +1,10 @@
 from datetime import UTC, datetime
 
+import pytest
 from corebank_api.repositories import users_provider
 from corebank_api.schemas.user import UserRecord
+
+pytestmark = pytest.mark.db
 
 
 def make_user() -> UserRecord:

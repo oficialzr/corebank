@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.db
+
+
 def registration_payload() -> dict[str, str]:
     return {
         "email": "Alex@Example.com",
@@ -52,3 +57,63 @@ def test_register_user_rejects_invalid_email(client) -> None:
     response = client.post("/auth/register", json=payload)
 
     assert response.status_code == 422
+
+
+def login_payload(password: str = "strong-password") -> dict[str, str]:
+    return {
+        "email": "alex@example.com",
+        "password": password,
+    }
+
+
+def test_login_returns_access_token(client) -> None:
+    client.post("/auth/register", json=registration_payload())
+
+    response = client.post("/auth/login", json=login_payload())
+
+    assert response.status_code == 200
+    assert response.json()["token_type"] == "bearer"
+    assert response.json()["access_token"]
+
+
+def test_login_rejects_invalid_credentials(client) -> None:
+    client.post("/auth/register", json=registration_payload())
+
+    response = client.post("/auth/login", json=login_payload(password="wrong-password"))
+
+    assert response.status_code == 401
+    assert response.json() == {
+        "detail": {
+            "code": "invalid_credentials",
+            "message": "Invalid email or password",
+        }
+    }
+
+
+def test_auth_me_returns_current_user(client) -> None:
+    client.post("/auth/register", json=registration_payload())
+    login_response = client.post("/auth/login", json=login_payload())
+    access_token = login_response.json()["access_token"]
+
+    response = client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["email"] == "alex@example.com"
+
+
+def test_auth_me_rejects_invalid_token(client) -> None:
+    response = client.get(
+        "/auth/me",
+        headers={"Authorization": "Bearer invalid-token"},
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {
+        "detail": {
+            "code": "invalid_token",
+            "message": "Invalid or expired access token",
+        }
+    }

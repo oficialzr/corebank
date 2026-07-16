@@ -41,7 +41,10 @@ def reset_postgres_test_data() -> None:
 
 
 @pytest.fixture(autouse=True)
-def reset_repository_between_tests() -> None:
+def reset_repository_between_tests(request) -> None:
+    if "db" not in request.keywords:
+        return
+
     try:
         reset_postgres_test_data()
     except OperationalError:

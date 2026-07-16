@@ -1,9 +1,12 @@
+import pytest
 from corebank_api.schemas.account import AccountCreateRequest
 from corebank_api.services.accounts import (
     create_account,
     get_account_by_id,
     list_accounts,
 )
+
+pytestmark = pytest.mark.db
 
 
 def test_list_accounts_service_returns_accounts() -> None:
