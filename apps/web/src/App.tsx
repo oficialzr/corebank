@@ -3,12 +3,10 @@ import type { FormEvent } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import {
   ApiError,
-  clearToken,
   getCurrentUser,
-  getToken,
   login,
+  logout as endSession,
   register,
-  saveToken,
 } from "./api";
 import type { User } from "./types";
 import Dashboard from "./Dashboard";
@@ -64,9 +62,8 @@ function AuthPanel({
         await register({ full_name: fullName, email, password, phone_number: phoneNumber });
       }
 
-      const token = await login(email, password);
-      saveToken(token.access_token);
-      const user = await getCurrentUser(token.access_token);
+      await login(email, password);
+      const user = await getCurrentUser();
       onAuthenticated(user);
     } catch (requestError) {
       setError(
@@ -235,16 +232,9 @@ export default function App() {
   const [sessionLoading, setSessionLoading] = useState(true);
 
   useEffect(() => {
-    const token = getToken();
-
-    if (!token) {
-      setSessionLoading(false);
-      return;
-    }
-
-    getCurrentUser(token)
+    getCurrentUser()
       .then(setUser)
-      .catch(() => clearToken())
+      .catch(() => setUser(null))
       .finally(() => setSessionLoading(false));
   }, []);
 
@@ -254,10 +244,10 @@ export default function App() {
   }
 
   const logout = useCallback(() => {
-    clearToken();
     setUser(null);
     setMode("login");
     navigate("/");
+    void endSession().catch(() => undefined);
   }, [navigate]);
 
   function handleAuthenticated(authenticatedUser: User) {

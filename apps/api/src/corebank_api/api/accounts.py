@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from corebank_api.api.auth import CurrentUser
+from corebank_api.api.auth import CsrfProtection, CurrentUser
 from corebank_api.errors import api_error
 from corebank_api.schemas.account import AccountCreateRequest, AccountResponse
 from corebank_api.schemas.errors import ErrorResponse
@@ -42,7 +42,11 @@ def get_account_endpoint(account_id: str, current_user: CurrentUser) -> AccountR
 
 
 @router.post("", response_model=AccountResponse, status_code=status.HTTP_201_CREATED)
-def create_account_endpoint(request: AccountCreateRequest, current_user: CurrentUser) -> AccountResponse:
+def create_account_endpoint(
+    request: AccountCreateRequest,
+    current_user: CurrentUser,
+    _: CsrfProtection,
+) -> AccountResponse:
     return create_account(
         request,
         user_id=current_user.id,

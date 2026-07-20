@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 
 pytestmark = pytest.mark.db
@@ -165,6 +167,7 @@ def test_create_transfer_rejects_currency_mismatch(auth_client) -> None:
 def test_create_transfer_returns_next_transaction_id(auth_client) -> None:
     first_response = auth_client.post(
         "/transfers",
+        headers={"Idempotency-Key": str(uuid4())},
         json={
             "from_account_id": "acc-001",
             "to_account_id": "acc-002",
@@ -174,6 +177,7 @@ def test_create_transfer_returns_next_transaction_id(auth_client) -> None:
 
     second_response = auth_client.post(
         "/transfers",
+        headers={"Idempotency-Key": str(uuid4())},
         json={
             "from_account_id": "acc-001",
             "to_account_id": "acc-002",
@@ -257,3 +261,33 @@ def test_create_transfer_by_phone(auth_client) -> None:
     assert response.status_code == 201
     assert response.json()["to_account_id"] == "acc-002"
     assert response.json()["amount"] == 125.50
+
+
+def test_repeated_idempotent_transfer_returns_original_result(auth_client) -> None:
+    payload = {
+        "from_account_id": "acc-001",
+        "to_account_id": "acc-002",
+        "amount": 125.50,
+    }
+
+    first = auth_client.post("/transfers", json=payload)
+    second = auth_client.post("/transfers", json=payload)
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert second.json() == first.json()
+
+
+def test_reusing_idempotency_key_for_another_transfer_returns_conflict(auth_client) -> None:
+    first = auth_client.post(
+        "/transfers",
+        json={"from_account_id": "acc-001", "to_account_id": "acc-002", "amount": 10},
+    )
+    second = auth_client.post(
+        "/transfers",
+        json={"from_account_id": "acc-001", "to_account_id": "acc-002", "amount": 20},
+    )
+
+    assert first.status_code == 201
+    assert second.status_code == 409
+    assert second.json()["detail"]["code"] == "idempotency_conflict"

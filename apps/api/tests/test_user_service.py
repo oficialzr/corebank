@@ -1,5 +1,5 @@
 import pytest
-from corebank_api.core.security import decode_access_token, verify_password
+from corebank_api.core.security import verify_password
 from corebank_api.domain.errors import EmailAlreadyRegisteredError, InvalidCredentialsError
 from corebank_api.repositories import users_provider
 from corebank_api.schemas.user import UserLoginRequest, UserRegisterRequest
@@ -46,7 +46,7 @@ def test_register_user_rejects_duplicate_email() -> None:
         register_user(make_request("alex@example.com"))
 
 
-def test_login_user_returns_bearer_token() -> None:
+def test_login_user_returns_authenticated_user() -> None:
     register_user(make_request())
 
     response = login_user(
@@ -56,8 +56,7 @@ def test_login_user_returns_bearer_token() -> None:
         )
     )
 
-    assert response.token_type == "bearer"
-    assert decode_access_token(response.access_token) == "alex@example.com"
+    assert response.email == "alex@example.com"
 
 
 def test_login_user_rejects_invalid_password() -> None:

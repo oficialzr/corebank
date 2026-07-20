@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from corebank_api.core.security import create_access_token, hash_password, verify_password
+from corebank_api.core.security import hash_password, verify_password
 from corebank_api.domain.errors import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
@@ -9,7 +9,6 @@ from corebank_api.domain.errors import (
 )
 from corebank_api.repositories import users_provider
 from corebank_api.schemas.user import (
-    TokenResponse,
     UserLoginRequest,
     UserRecord,
     UserRegisterRequest,
@@ -58,17 +57,14 @@ def register_user(request: UserRegisterRequest) -> UserResponse:
     return to_user_response(saved_user)
 
 
-def login_user(request: UserLoginRequest) -> TokenResponse:
+def login_user(request: UserLoginRequest) -> UserRecord:
     normalized_email = normalize_email(str(request.email))
     user = users_provider.get_user_by_email(normalized_email)
 
     if user is None or not verify_password(request.password, user.password_hash):
         raise InvalidCredentialsError
 
-    return TokenResponse(
-        access_token=create_access_token(user.email),
-        token_type="bearer",
-    )
+    return user
 
 
 def get_user_by_email(email: str) -> UserResponse | None:

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 
 pytestmark = pytest.mark.db
@@ -11,6 +13,7 @@ def assert_transaction_id_format(transaction_id: str) -> None:
 def create_test_transfer(auth_client) -> str:
     response = auth_client.post(
         "/transfers",
+        headers={"Idempotency-Key": str(uuid4())},
         json={
             "from_account_id": "acc-001",
             "to_account_id": "acc-002",

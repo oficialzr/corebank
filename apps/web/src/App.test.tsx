@@ -9,14 +9,12 @@ vi.mock("./api", async (importOriginal) => {
   const original = await importOriginal<typeof import("./api")>();
   return {
     ...original,
-    clearToken: vi.fn(),
     getAccounts: vi.fn().mockResolvedValue([]),
     getCurrentUser: vi.fn(),
-    getToken: vi.fn().mockReturnValue(null),
     getTransactions: vi.fn().mockResolvedValue([]),
     login: vi.fn(),
+    logout: vi.fn().mockResolvedValue({ authenticated: false }),
     register: vi.fn(),
-    saveToken: vi.fn(),
   };
 });
 
@@ -32,34 +30,37 @@ const user = {
 describe("authentication", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(api.getToken).mockReturnValue(null);
+    vi.mocked(api.getCurrentUser).mockRejectedValue(new api.ApiError("No session", 401));
   });
 
   it("logs in and opens the dashboard", async () => {
-    vi.mocked(api.login).mockResolvedValue({ access_token: "jwt-token", token_type: "bearer" });
-    vi.mocked(api.getCurrentUser).mockResolvedValue(user);
+    vi.mocked(api.login).mockResolvedValue({ authenticated: true });
+    vi.mocked(api.getCurrentUser)
+      .mockRejectedValueOnce(new api.ApiError("No session", 401))
+      .mockResolvedValue(user);
     const browser = userEvent.setup();
 
     render(<MemoryRouter><App /></MemoryRouter>);
 
-    await browser.type(screen.getByLabelText("Электронная почта"), user.email);
+    await browser.type(await screen.findByLabelText("Электронная почта"), user.email);
     await browser.type(screen.getByLabelText("Пароль"), "strong-password");
     await browser.click(screen.getByRole("button", { name: "Войти в CoreBank" }));
 
     expect(await screen.findByText("Добрый день, Алексей")).toBeInTheDocument();
     expect(api.login).toHaveBeenCalledWith(user.email, "strong-password");
-    expect(api.saveToken).toHaveBeenCalledWith("jwt-token");
   });
 
   it("registers with a phone number before logging in", async () => {
     vi.mocked(api.register).mockResolvedValue(user);
-    vi.mocked(api.login).mockResolvedValue({ access_token: "jwt-token", token_type: "bearer" });
-    vi.mocked(api.getCurrentUser).mockResolvedValue(user);
+    vi.mocked(api.login).mockResolvedValue({ authenticated: true });
+    vi.mocked(api.getCurrentUser)
+      .mockRejectedValueOnce(new api.ApiError("No session", 401))
+      .mockResolvedValue(user);
     const browser = userEvent.setup();
 
     render(<MemoryRouter><App /></MemoryRouter>);
 
-    await browser.click(screen.getByRole("tab", { name: "Регистрация" }));
+    await browser.click(await screen.findByRole("tab", { name: "Регистрация" }));
     await browser.type(screen.getByLabelText("Имя и фамилия"), user.full_name);
     await browser.type(screen.getByLabelText("Номер телефона"), "+7 999 123-45-67");
     await browser.type(screen.getByLabelText("Электронная почта"), user.email);

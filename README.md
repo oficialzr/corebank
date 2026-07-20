@@ -40,13 +40,15 @@ Implemented:
 - Recipient lookup by phone or synthetic 16-digit transfer card number
 - Exact two-decimal money values in PostgreSQL and the API
 - Frontend component tests for authentication and banking operations
+- Idempotent transfers protected by a per-user request key
+- Secure HttpOnly cookie sessions with double-submit CSRF protection
+- Playwright coverage for the complete browser banking journey
 - PostgreSQL-backed test suite
 
 Not implemented yet:
 
 - Cards
 - Audit events
-- Idempotency keys
 - Redis
 - Message broker and workers
 - Monitoring
@@ -55,7 +57,7 @@ Not implemented yet:
 Current test inventory:
 
 ```text
-78 backend tests and 4 frontend component tests
+81 backend tests, 4 frontend component tests, and 1 browser E2E test
 ```
 
 The tests require a reachable PostgreSQL database. The complete suite has been
@@ -268,7 +270,7 @@ npm install
 npm run dev
 ```
 
-The development site is available at `http://127.0.0.1:5173` and proxies
+The development site is available at `https://localhost:5173` and proxies
 requests from `/api` to the FastAPI application at `http://127.0.0.1:8000`.
 The frontend implementation plan is documented in
 [docs/frontend.md](docs/frontend.md).
@@ -356,6 +358,7 @@ Example:
 ```bash
 curl -X POST http://127.0.0.1:8000/transfers \
   -H "Authorization: Bearer <access_token>" \
+  -H "Idempotency-Key: <unique-request-id>" \
   -H "Content-Type: application/json" \
   -d '{"from_account_id":"acc-001","recipient":"+79991234567","amount":100.00}'
 ```
@@ -407,6 +410,8 @@ Transfers:
 - Successful transfer creates a transaction record.
 - Related account rows are locked during balance updates.
 - Concurrent transfers cannot overspend the source account.
+- Repeating the same idempotency key and payload returns the original result.
+- Reusing a key for a different transfer returns `409 idempotency_conflict`.
 
 Transactions:
 
@@ -434,15 +439,13 @@ Near-term:
 
 - Keep the PostgreSQL-backed test suite green.
 - Generate frontend API types from the OpenAPI schema.
-- Add idempotency keys before retrying money operations automatically.
-- Move authentication from local storage to secure HttpOnly cookies.
+- Add expiry and cleanup policy for completed idempotency records.
 - Keep README and roadmap synchronized with implemented behavior.
 
 Later:
 
 - Cards
 - Audit events
-- Idempotency for transfers
 - Redis
 - Message broker and workers
 - Observability

@@ -3,14 +3,14 @@ import type {
   ApiErrorBody,
   Currency,
   RecipientLookup,
-  TokenResponse,
+  SessionResponse,
   Transaction,
   TransferResponse,
   User,
 } from "./types";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
-const TOKEN_KEY = "corebank_access_token";
+const CSRF_COOKIE = "corebank_csrf";
 
 const errorMessages: Record<string, string> = {
   email_already_registered: "Пользователь с такой почтой уже зарегистрирован",
@@ -37,6 +37,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
@@ -61,38 +62,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 async function authorizedRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
-
-  if (!token) {
-    throw new ApiError("Необходимо войти в аккаунт", 401);
+  const method = (options.method ?? "GET").toUpperCase();
+  const csrfToken = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(`${CSRF_COOKIE}=`))
+    ?.split("=")[1];
+  if (!["GET", "HEAD", "OPTIONS"].includes(method) && !csrfToken) {
+    throw new ApiError("Сессия недействительна. Войдите снова", 401);
   }
-
-  try {
-    return await request<T>(path, {
-      ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      clearToken();
-    }
-    throw error;
-  }
-}
-
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function saveToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  return request<T>(path, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...(csrfToken ? { "X-CSRF-Token": decodeURIComponent(csrfToken) } : {}),
+    },
+  });
 }
 
 export function register(payload: {
@@ -107,17 +91,19 @@ export function register(payload: {
   });
 }
 
-export function login(email: string, password: string): Promise<TokenResponse> {
-  return request<TokenResponse>("/auth/login", {
+export function login(email: string, password: string): Promise<SessionResponse> {
+  return request<SessionResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
 }
 
-export function getCurrentUser(token: string): Promise<User> {
-  return request<User>("/auth/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export function getCurrentUser(): Promise<User> {
+  return authorizedRequest<User>("/auth/me");
+}
+
+export function logout(): Promise<SessionResponse> {
+  return authorizedRequest<SessionResponse>("/auth/logout", { method: "POST" });
 }
 
 export function updatePhoneNumber(phoneNumber: string): Promise<User> {
@@ -149,6 +135,7 @@ export function createTransfer(payload: {
 }): Promise<TransferResponse> {
   return authorizedRequest<TransferResponse>("/transfers", {
     method: "POST",
+    headers: { "Idempotency-Key": crypto.randomUUID() },
     body: JSON.stringify(payload),
   });
 }

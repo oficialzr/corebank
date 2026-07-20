@@ -1,9 +1,17 @@
+import hashlib
+import json
 from datetime import UTC, datetime
+from decimal import Decimal
+from uuid import uuid4
 
+from sqlalchemy.exc import IntegrityError
+
+from corebank_api.database.models import TransferIdempotencyModel
 from corebank_api.database.session import SessionLocal
 from corebank_api.domain.errors import (
     CurrencyMismatchError,
     DestinationAccountNotFoundError,
+    IdempotencyConflictError,
     InsufficientFundsError,
     SameAccountTransferError,
     SourceAccountNotFoundError,
@@ -65,7 +73,38 @@ def get_recipient(
         )
 
 
-def create_transfer(request: TransferCreateRequest, user_id: str) -> TransferResponse:
+def transfer_request_hash(request: TransferCreateRequest, destination_account_id: str) -> str:
+    payload = {
+        "amount": str(request.amount.quantize(Decimal("0.01"))),
+        "from_account_id": request.from_account_id,
+        "to_account_id": destination_account_id,
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def idempotency_response(record: TransferIdempotencyModel) -> TransferResponse | None:
+    if (
+        record.transaction_id is None
+        or record.from_account_id is None
+        or record.to_account_id is None
+        or record.amount is None
+        or record.status is None
+    ):
+        return None
+    return TransferResponse(
+        transaction_id=record.transaction_id,
+        from_account_id=record.from_account_id,
+        to_account_id=record.to_account_id,
+        amount=record.amount,
+        status=record.status,
+    )
+
+
+def create_transfer(
+    request: TransferCreateRequest,
+    user_id: str,
+    idempotency_key: str | None = None,
+) -> TransferResponse:
     with SessionLocal() as session:
         source = sql_accounts.get_account_by_id(session, request.from_account_id)
 
@@ -79,6 +118,36 @@ def create_transfer(request: TransferCreateRequest, user_id: str) -> TransferRes
             if recipient is None:
                 raise DestinationAccountNotFoundError
             destination_account_id = recipient.id
+
+        reservation = None
+        if idempotency_key is not None:
+            request_hash = transfer_request_hash(request, destination_account_id)
+            reservation = TransferIdempotencyModel(
+                id=f"idem-{uuid4()}",
+                user_id=user_id,
+                idempotency_key=idempotency_key,
+                request_hash=request_hash,
+                created_at=datetime.now(UTC),
+            )
+            session.add(reservation)
+            try:
+                session.flush()
+            except IntegrityError:
+                session.rollback()
+                existing = (
+                    session.query(TransferIdempotencyModel)
+                    .filter(
+                        TransferIdempotencyModel.user_id == user_id,
+                        TransferIdempotencyModel.idempotency_key == idempotency_key,
+                    )
+                    .one()
+                )
+                if existing.request_hash != request_hash:
+                    raise IdempotencyConflictError from None
+                response = idempotency_response(existing)
+                if response is None:
+                    raise IdempotencyConflictError from None
+                return response
 
         account_ids_to_lock = sorted(
             [
@@ -145,6 +214,13 @@ def create_transfer(request: TransferCreateRequest, user_id: str) -> TransferRes
             ),
             commit=False,
         )
+
+        if reservation is not None:
+            reservation.transaction_id = transaction.id
+            reservation.from_account_id = from_account.id
+            reservation.to_account_id = to_account.id
+            reservation.amount = request.amount
+            reservation.status = str(TransferStatus.COMPLETED)
 
         session.commit()
 

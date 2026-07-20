@@ -1,4 +1,4 @@
-.PHONY: run-api run-api-test-env run-web build-web test-web test lint format fix check migrate https-cert docker-up docker-down docker-ps docker-logs-api
+.PHONY: run-api run-api-test-env run-web build-web test-web test-e2e test lint format fix check migrate https-cert docker-up docker-down docker-ps docker-logs-api
 
 TEST_DATABASE_URL=postgresql+psycopg://corebank:corebank@localhost:5433/corebank
 
@@ -16,6 +16,9 @@ build-web:
 
 test-web:
 	npm --prefix apps/web test
+
+test-e2e:
+	npm --prefix apps/web run test:e2e
 
 test:
 	COREBANK_DATABASE_URL=$(TEST_DATABASE_URL) pytest

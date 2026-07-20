@@ -22,6 +22,10 @@ class InsufficientFundsError(TransferError):
     pass
 
 
+class IdempotencyConflictError(TransferError):
+    pass
+
+
 class UserError(Exception):
     pass
 

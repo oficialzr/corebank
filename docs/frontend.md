@@ -43,6 +43,8 @@ introduced when the application gains more server state and complex forms.
 - component tests for login, account opening, and transfers
 - registration with a unique normalized phone number
 - profile prompt for existing users to add a searchable phone number
+- Secure HttpOnly cookie sessions with automatic CSRF headers
+- Playwright coverage for registration, session restoration, accounts, and transfers
 - loading, empty, expired-session, and API error states
 
 ## Delivery plan
@@ -50,7 +52,7 @@ introduced when the application gains more server state and complex forms.
 ### 1. Authentication foundation
 
 - Add the landing page and real auth flow (implemented).
-- Move from browser storage to secure HttpOnly cookies before production.
+- Use secure HttpOnly cookies for browser sessions (implemented).
 - Add password recovery and email verification when backend support exists.
 
 ### 2. Authenticated application shell
@@ -72,7 +74,7 @@ introduced when the application gains more server state and complex forms.
 - Build a guided transfer form with account selection and amount formatting
   (implemented).
 - Add confirmation and a result state (implemented).
-- Add backend idempotency support before enabling automatic retries.
+- Add backend idempotency support before enabling automatic retries (implemented).
 - Add optimistic feedback only where money-operation semantics allow it.
 
 ### 5. Cards
@@ -83,6 +85,6 @@ introduced when the application gains more server state and complex forms.
 ### 6. Quality and production readiness
 
 - Add component tests for authentication and transfers (implemented).
-- Add browser-level end-to-end tests for the critical user journeys.
+- Add browser-level end-to-end tests for the critical user journeys (implemented).
 - Add accessibility checks, analytics, monitoring, and a strict CSP.
 - Keep the committed dependency lockfile current and build the frontend in CI.

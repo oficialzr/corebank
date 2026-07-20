@@ -5,6 +5,7 @@ from corebank_api.core.security import create_access_token
 from corebank_api.database.models import (
     AccountModel,
     TransactionModel,
+    TransferIdempotencyModel,
     UserModel,
 )
 from corebank_api.database.session import SessionLocal
@@ -15,6 +16,7 @@ from sqlalchemy.exc import OperationalError
 
 def reset_postgres_test_data() -> None:
     with SessionLocal() as session:
+        session.query(TransferIdempotencyModel).delete(synchronize_session=False)
         session.query(TransactionModel).delete(synchronize_session=False)
         session.query(AccountModel).delete(synchronize_session=False)
         session.query(UserModel).delete(synchronize_session=False)
@@ -83,18 +85,24 @@ def reset_repository_between_tests(request) -> None:
 @pytest.fixture
 def client() -> TestClient:
     app = create_app()
-    return TestClient(app)
+    return TestClient(app, base_url="https://testserver")
 
 
 @pytest.fixture
 def auth_client() -> TestClient:
     app = create_app()
     token = create_access_token("owner-alex@example.com")
-    return TestClient(app, headers={"Authorization": f"Bearer {token}"})
+    return TestClient(
+        app,
+        headers={"Authorization": f"Bearer {token}", "Idempotency-Key": "test-idempotency-key"},
+    )
 
 
 @pytest.fixture
 def maria_auth_client() -> TestClient:
     app = create_app()
     token = create_access_token("owner-maria@example.com")
-    return TestClient(app, headers={"Authorization": f"Bearer {token}"})
+    return TestClient(
+        app,
+        headers={"Authorization": f"Bearer {token}", "Idempotency-Key": "test-idempotency-key"},
+    )

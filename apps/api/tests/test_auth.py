@@ -89,14 +89,16 @@ def login_payload(password: str = "strong-password") -> dict[str, str]:
     }
 
 
-def test_login_returns_access_token(client) -> None:
+def test_login_sets_secure_session_cookie(client) -> None:
     client.post("/auth/register", json=registration_payload())
 
     response = client.post("/auth/login", json=login_payload())
 
     assert response.status_code == 200
-    assert response.json()["token_type"] == "bearer"
-    assert response.json()["access_token"]
+    assert response.json() == {"authenticated": True}
+    assert "corebank_session" in response.cookies
+    assert "HttpOnly" in response.headers["set-cookie"]
+    assert "Secure" in response.headers["set-cookie"]
 
 
 def test_login_rejects_invalid_credentials(client) -> None:
@@ -116,12 +118,8 @@ def test_login_rejects_invalid_credentials(client) -> None:
 def test_auth_me_returns_current_user(client) -> None:
     client.post("/auth/register", json=registration_payload())
     login_response = client.post("/auth/login", json=login_payload())
-    access_token = login_response.json()["access_token"]
-
-    response = client.get(
-        "/auth/me",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
+    assert login_response.status_code == 200
+    response = client.get("/auth/me")
 
     assert response.status_code == 200
     assert response.json()["email"] == "alex@example.com"
@@ -150,3 +148,21 @@ def test_update_current_user_phone(auth_client) -> None:
 
     assert response.status_code == 200
     assert response.json()["phone_number"] == "+79995554433"
+
+
+def test_cookie_session_requires_csrf_for_mutations(client) -> None:
+    client.post("/auth/register", json=registration_payload())
+    login_response = client.post("/auth/login", json=login_payload())
+    assert login_response.status_code == 200
+
+    rejected = client.patch("/auth/me/phone", json={"phone_number": "+79995554433"})
+    csrf_token = client.cookies.get("corebank_csrf")
+    accepted = client.patch(
+        "/auth/me/phone",
+        json={"phone_number": "+79995554433"},
+        headers={"X-CSRF-Token": csrf_token},
+    )
+
+    assert rejected.status_code == 403
+    assert rejected.json()["detail"]["code"] == "invalid_csrf"
+    assert accepted.status_code == 200

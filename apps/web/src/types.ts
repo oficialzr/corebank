@@ -7,9 +7,8 @@ export interface User {
   created_at: string;
 }
 
-export interface TokenResponse {
-  access_token: string;
-  token_type: string;
+export interface SessionResponse {
+  authenticated: boolean;
 }
 
 export type Currency = "RUB" | "USD" | "EUR";

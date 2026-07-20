@@ -214,6 +214,8 @@ node_modules/
 apps/web/dist/
 *.tsbuildinfo
 .certs/
+apps/web/playwright-report/
+apps/web/test-results/
 
 # Marimo
 marimo/_static/

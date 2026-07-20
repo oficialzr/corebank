@@ -1,9 +1,11 @@
+import hmac
+import secrets
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from corebank_api.core.security import InvalidTokenError, decode_access_token
+from corebank_api.core.security import InvalidTokenError, create_access_token, decode_access_token
 from corebank_api.domain.errors import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
@@ -12,7 +14,7 @@ from corebank_api.domain.errors import (
 from corebank_api.errors import api_error
 from corebank_api.schemas.errors import ErrorResponse
 from corebank_api.schemas.user import (
-    TokenResponse,
+    SessionResponse,
     UserLoginRequest,
     UserPhoneUpdateRequest,
     UserRegisterRequest,
@@ -28,6 +30,8 @@ from corebank_api.services.users import (
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 bearer_scheme = HTTPBearer(auto_error=False)
 BearerCredentials = Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)]
+ACCESS_COOKIE = "corebank_session"
+CSRF_COOKIE = "corebank_csrf"
 
 
 def email_already_registered_error() -> HTTPException:
@@ -68,12 +72,15 @@ def invalid_token_error() -> HTTPException:
     )
 
 
-def get_current_user(credentials: BearerCredentials) -> UserResponse:
-    if credentials is None or credentials.scheme.lower() != "bearer":
+def get_current_user(request: Request, credentials: BearerCredentials) -> UserResponse:
+    token = request.cookies.get(ACCESS_COOKIE)
+    if token is None and credentials is not None and credentials.scheme.lower() == "bearer":
+        token = credentials.credentials
+    if token is None:
         raise invalid_token_error()
 
     try:
-        email = decode_access_token(credentials.credentials)
+        email = decode_access_token(token)
     except InvalidTokenError as error:
         raise invalid_token_error() from error
 
@@ -86,6 +93,20 @@ def get_current_user(credentials: BearerCredentials) -> UserResponse:
 
 
 CurrentUser = Annotated[UserResponse, Depends(get_current_user)]
+
+
+def validate_csrf(
+    request: Request,
+    csrf_header: Annotated[str | None, Header(alias="X-CSRF-Token")] = None,
+) -> None:
+    if request.cookies.get(ACCESS_COOKIE) is None:
+        return
+    csrf_cookie = request.cookies.get(CSRF_COOKIE)
+    if csrf_cookie is None or csrf_header is None or not hmac.compare_digest(csrf_cookie, csrf_header):
+        raise api_error(status.HTTP_403_FORBIDDEN, "invalid_csrf", "Invalid CSRF token")
+
+
+CsrfProtection = Annotated[None, Depends(validate_csrf)]
 
 
 @router.post(
@@ -112,7 +133,7 @@ def register_user_endpoint(
 
 @router.post(
     "/login",
-    response_model=TokenResponse,
+    response_model=SessionResponse,
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "model": ErrorResponse,
@@ -120,11 +141,23 @@ def register_user_endpoint(
         },
     },
 )
-def login_user_endpoint(request: UserLoginRequest) -> TokenResponse:
+def login_user_endpoint(request: UserLoginRequest, response: Response) -> SessionResponse:
     try:
-        return login_user(request)
+        user = login_user(request)
     except InvalidCredentialsError as error:
         raise invalid_credentials_error() from error
+    access_token = create_access_token(user.email)
+    csrf_token = secrets.token_urlsafe(32)
+    response.set_cookie(ACCESS_COOKIE, access_token, httponly=True, secure=True, samesite="strict", path="/")
+    response.set_cookie(CSRF_COOKIE, csrf_token, httponly=False, secure=True, samesite="strict", path="/")
+    return SessionResponse(authenticated=True)
+
+
+@router.post("/logout", response_model=SessionResponse)
+def logout_user_endpoint(response: Response, _: CsrfProtection) -> SessionResponse:
+    response.delete_cookie(ACCESS_COOKIE, secure=True, httponly=True, samesite="strict", path="/")
+    response.delete_cookie(CSRF_COOKIE, secure=True, httponly=False, samesite="strict", path="/")
+    return SessionResponse(authenticated=False)
 
 
 @router.get(
@@ -149,6 +182,7 @@ def get_current_user_endpoint(current_user: CurrentUser) -> UserResponse:
 def update_current_user_phone_endpoint(
     request: UserPhoneUpdateRequest,
     current_user: CurrentUser,
+    _: CsrfProtection,
 ) -> UserResponse:
     try:
         return update_user_phone_number(current_user.id, request.phone_number)

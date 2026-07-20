@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from typing import Annotated
 
-from corebank_api.api.auth import CurrentUser
+from fastapi import APIRouter, Header, HTTPException, Query, status
+
+from corebank_api.api.auth import CsrfProtection, CurrentUser
 from corebank_api.domain.errors import (
     CurrencyMismatchError,
     DestinationAccountNotFoundError,
+    IdempotencyConflictError,
     InsufficientFundsError,
     SameAccountTransferError,
     SourceAccountNotFoundError,
@@ -42,6 +45,11 @@ TRANSFER_ERROR_TO_HTTP_RESPONSE = {
         status.HTTP_400_BAD_REQUEST,
         "insufficient_funds",
         "Insufficient funds",
+    ),
+    IdempotencyConflictError: (
+        status.HTTP_409_CONFLICT,
+        "idempotency_conflict",
+        "Idempotency key was already used for another transfer",
     ),
 }
 
@@ -90,8 +98,13 @@ def get_transfer_recipient_endpoint(
         },
     },
 )
-def create_transfer_endpoint(request: TransferCreateRequest, current_user: CurrentUser) -> TransferResponse:
+def create_transfer_endpoint(
+    request: TransferCreateRequest,
+    current_user: CurrentUser,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=8, max_length=128)],
+    _: CsrfProtection,
+) -> TransferResponse:
     try:
-        return create_transfer(request, current_user.id)
+        return create_transfer(request, current_user.id, idempotency_key)
     except TransferError as error:
         raise map_transfer_error_to_http_exception(error) from error

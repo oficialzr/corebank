@@ -44,8 +44,46 @@ jobs:
       - name: Run lint
         run: make lint
 
-      - name: Create tables
-        run: make migrate
+      - name: Verify migration upgrade path
+        run: |
+          alembic -c apps/api/alembic.ini upgrade 6d4e2a91c8b7
+          alembic -c apps/api/alembic.ini upgrade head
 
       - name: Run tests
         run: make test
+
+  web-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci --prefix apps/web
+      - run: npm test --prefix apps/web
+      - run: npm run build --prefix apps/web
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci --prefix apps/web
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: make https-cert
+      - run: docker compose up -d --build
+      - name: Run browser tests
+        run: npm run test:e2e --prefix apps/web
+      - name: Show service logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
