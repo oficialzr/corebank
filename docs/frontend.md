@@ -38,8 +38,11 @@ introduced when the application gains more server state and complex forms.
 - account opening in RUB, USD, or EUR
 - recent incoming and outgoing transfer history
 - guided outgoing transfer flow with client-side validation and confirmation
+- recipient lookup by formatted phone number or 16-digit transfer number
 - localized business errors and refreshed balances after a successful transfer
 - component tests for login, account opening, and transfers
+- registration with a unique normalized phone number
+- profile prompt for existing users to add a searchable phone number
 - loading, empty, expired-session, and API error states
 
 ## Delivery plan

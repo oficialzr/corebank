@@ -4,16 +4,26 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from corebank_api.core.security import InvalidTokenError, decode_access_token
-from corebank_api.domain.errors import EmailAlreadyRegisteredError, InvalidCredentialsError
+from corebank_api.domain.errors import (
+    EmailAlreadyRegisteredError,
+    InvalidCredentialsError,
+    PhoneAlreadyRegisteredError,
+)
 from corebank_api.errors import api_error
 from corebank_api.schemas.errors import ErrorResponse
 from corebank_api.schemas.user import (
     TokenResponse,
     UserLoginRequest,
+    UserPhoneUpdateRequest,
     UserRegisterRequest,
     UserResponse,
 )
-from corebank_api.services.users import get_user_by_email, login_user, register_user
+from corebank_api.services.users import (
+    get_user_by_email,
+    login_user,
+    register_user,
+    update_user_phone_number,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -36,6 +46,14 @@ def invalid_credentials_error() -> HTTPException:
             "message": "Invalid email or password",
         },
         headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def phone_already_registered_error() -> HTTPException:
+    return api_error(
+        status_code=status.HTTP_409_CONFLICT,
+        code="phone_already_registered",
+        message="Phone number is already registered",
     )
 
 
@@ -88,6 +106,8 @@ def register_user_endpoint(
         return register_user(request)
     except EmailAlreadyRegisteredError as error:
         raise email_already_registered_error() from error
+    except PhoneAlreadyRegisteredError as error:
+        raise phone_already_registered_error() from error
 
 
 @router.post(
@@ -119,3 +139,18 @@ def login_user_endpoint(request: UserLoginRequest) -> TokenResponse:
 )
 def get_current_user_endpoint(current_user: CurrentUser) -> UserResponse:
     return current_user
+
+
+@router.patch(
+    "/me/phone",
+    response_model=UserResponse,
+    responses={status.HTTP_409_CONFLICT: {"model": ErrorResponse}},
+)
+def update_current_user_phone_endpoint(
+    request: UserPhoneUpdateRequest,
+    current_user: CurrentUser,
+) -> UserResponse:
+    try:
+        return update_user_phone_number(current_user.id, request.phone_number)
+    except PhoneAlreadyRegisteredError as error:
+        raise phone_already_registered_error() from error

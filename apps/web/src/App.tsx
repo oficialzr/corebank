@@ -43,6 +43,7 @@ function AuthPanel({
   const emailRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -60,7 +61,7 @@ function AuthPanel({
 
     try {
       if (mode === "register") {
-        await register({ full_name: fullName, email, password });
+        await register({ full_name: fullName, email, password, phone_number: phoneNumber });
       }
 
       const token = await login(email, password);
@@ -115,18 +116,31 @@ function AuthPanel({
 
       <form onSubmit={handleSubmit} className="auth-form">
         {mode === "register" && (
-          <label>
-            <span>Имя и фамилия</span>
-            <input
-              autoComplete="name"
-              minLength={1}
-              maxLength={200}
-              onChange={(event) => setFullName(event.target.value)}
-              placeholder="Алексей Иванов"
-              required
-              value={fullName}
-            />
-          </label>
+          <>
+            <label>
+              <span>Имя и фамилия</span>
+              <input
+                autoComplete="name"
+                minLength={1}
+                maxLength={200}
+                onChange={(event) => setFullName(event.target.value)}
+                placeholder="Алексей Иванов"
+                required
+                value={fullName}
+              />
+            </label>
+            <label>
+              <span>Номер телефона</span>
+              <input
+                autoComplete="tel"
+                inputMode="tel"
+                onChange={(event) => setPhoneNumber(event.target.value)}
+                placeholder="+7 999 123-45-67"
+                required
+                value={phoneNumber}
+              />
+            </label>
+          </>
         )}
 
         <label>
@@ -337,7 +351,7 @@ export default function App() {
           sessionLoading ? (
             <div className="dashboard-loading"><div className="loader" /><span>Проверяем сессию…</span></div>
           ) : user ? (
-            <Dashboard user={user} onLogout={logout} />
+            <Dashboard user={user} onLogout={logout} onUserUpdated={setUser} />
           ) : (
             <Navigate to="/" replace />
           )

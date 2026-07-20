@@ -5,9 +5,11 @@ import {
   createAccount,
   createTransfer,
   getAccounts,
+  getTransferRecipient,
   getTransactions,
+  updatePhoneNumber,
 } from "./api";
-import type { Account, Currency, Transaction, User } from "./types";
+import type { Account, Currency, RecipientLookup, Transaction, User } from "./types";
 import "./dashboard.css";
 
 const currencyNames: Record<Currency, string> = {
@@ -21,21 +23,21 @@ function formatMoney(amount: number, currency: Currency): string {
     style: "currency",
     currency,
     maximumFractionDigits: 2,
-  }).format(amount / 100);
+  }).format(amount);
 }
 
-function shortAccountId(id: string): string {
-  return `•• ${id.slice(-8).toUpperCase()}`;
+function maskedCardNumber(cardNumber: string): string {
+  return `•••• ${cardNumber.slice(-4)}`;
 }
 
-function amountToMinorUnits(value: string): number | null {
+function parseMoney(value: string): number | null {
   const normalized = value.trim().replace(",", ".");
 
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
     return null;
   }
 
-  const amount = Math.round(Number(normalized) * 100);
+  const amount = Number(normalized);
   return amount > 0 ? amount : null;
 }
 
@@ -51,9 +53,11 @@ function DashboardLogo() {
 export default function Dashboard({
   user,
   onLogout,
+  onUserUpdated,
 }: {
   user: User;
   onLogout: () => void;
+  onUserUpdated: (user: User) => void;
 }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -65,10 +69,15 @@ export default function Dashboard({
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferStep, setTransferStep] = useState<"details" | "confirm" | "success">("details");
   const [fromAccountId, setFromAccountId] = useState("");
-  const [toAccountId, setToAccountId] = useState("");
+  const [recipientIdentifier, setRecipientIdentifier] = useState("");
+  const [recipient, setRecipient] = useState<RecipientLookup | null>(null);
   const [transferAmount, setTransferAmount] = useState("");
   const [transferError, setTransferError] = useState("");
   const [transferring, setTransferring] = useState(false);
+  const [showPhone, setShowPhone] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState(user.phone_number ?? "");
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
   const loadDashboard = useCallback(async () => {
     setError("");
@@ -111,11 +120,12 @@ export default function Dashboard({
   }, [accounts]);
 
   const selectedAccount = accounts.find((account) => account.id === fromAccountId);
-  const amountInMinorUnits = amountToMinorUnits(transferAmount);
+  const transferValue = parseMoney(transferAmount);
 
   function openTransfer() {
     setFromAccountId(accounts[0]?.id ?? "");
-    setToAccountId("");
+    setRecipientIdentifier("");
+    setRecipient(null);
     setTransferAmount("");
     setTransferError("");
     setTransferStep("details");
@@ -128,35 +138,51 @@ export default function Dashboard({
     }
   }
 
-  function reviewTransfer() {
+  async function reviewTransfer() {
     setTransferError("");
 
     if (!fromAccountId || !selectedAccount) {
       setTransferError("Выберите счёт списания");
       return;
     }
-    if (!toAccountId.trim()) {
-      setTransferError("Укажите счёт получателя");
+    if (!recipientIdentifier.trim()) {
+      setTransferError("Укажите телефон или 16 цифр номера карты");
       return;
     }
-    if (toAccountId.trim() === fromAccountId) {
-      setTransferError("Нельзя перевести деньги на тот же счёт");
-      return;
-    }
-    if (amountInMinorUnits === null) {
+    if (transferValue === null) {
       setTransferError("Введите сумму больше нуля, не более двух знаков после запятой");
       return;
     }
-    if (amountInMinorUnits > selectedAccount.balance) {
+    if (transferValue > selectedAccount.balance) {
       setTransferError("На счёте недостаточно средств");
       return;
     }
 
-    setTransferStep("confirm");
+    setTransferring(true);
+    try {
+      const foundRecipient = await getTransferRecipient(
+        selectedAccount.id,
+        recipientIdentifier.trim(),
+      );
+      setRecipient(foundRecipient);
+      setTransferStep("confirm");
+    } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
+        onLogout();
+        return;
+      }
+      setTransferError(
+        requestError instanceof ApiError
+          ? requestError.message
+          : "Не удалось найти получателя",
+      );
+    } finally {
+      setTransferring(false);
+    }
   }
 
   async function handleTransfer() {
-    if (!selectedAccount || amountInMinorUnits === null) {
+    if (!selectedAccount || transferValue === null || recipient === null) {
       setTransferStep("details");
       return;
     }
@@ -166,8 +192,8 @@ export default function Dashboard({
     try {
       await createTransfer({
         from_account_id: selectedAccount.id,
-        to_account_id: toAccountId.trim(),
-        amount: amountInMinorUnits,
+        recipient: recipientIdentifier.trim(),
+        amount: transferValue,
       });
       await loadDashboard();
       setTransferStep("success");
@@ -206,6 +232,28 @@ export default function Dashboard({
       );
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleSavePhone() {
+    setSavingPhone(true);
+    setPhoneError("");
+    try {
+      const updatedUser = await updatePhoneNumber(phoneNumber);
+      onUserUpdated(updatedUser);
+      setShowPhone(false);
+    } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
+        onLogout();
+        return;
+      }
+      setPhoneError(
+        requestError instanceof ApiError
+          ? requestError.message
+          : "Не удалось сохранить номер телефона",
+      );
+    } finally {
+      setSavingPhone(false);
     }
   }
 
@@ -252,6 +300,13 @@ export default function Dashboard({
           </div>
         )}
 
+        {!user.phone_number && (
+          <div className="phone-notice">
+            <span>Добавьте номер телефона, чтобы другие клиенты могли находить вас для перевода.</span>
+            <button onClick={() => setShowPhone(true)} type="button">Добавить номер</button>
+          </div>
+        )}
+
         {loading ? (
           <div className="dashboard-loading"><div className="loader" /><span>Загружаем ваши финансы…</span></div>
         ) : (
@@ -293,7 +348,7 @@ export default function Dashboard({
                     <article className={`account-card tone-${index % 3}`} key={account.id}>
                       <div><span>{currencyNames[account.currency]}</span><small>{account.currency}</small></div>
                       <strong>{formatMoney(account.balance, account.currency)}</strong>
-                      <footer><span>{shortAccountId(account.id)}</span><i>CB</i></footer>
+                      <footer><span>{maskedCardNumber(account.card_number)}</span><i>CB</i></footer>
                     </article>
                   ))}
                 </div>
@@ -364,14 +419,15 @@ export default function Dashboard({
                 <p>Баланс и история операций уже обновлены.</p>
                 <button className="modal-submit" onClick={closeTransfer} type="button">Готово</button>
               </div>
-            ) : transferStep === "confirm" && selectedAccount && amountInMinorUnits !== null ? (
+            ) : transferStep === "confirm" && selectedAccount && transferValue !== null && recipient ? (
               <>
                 <span className="eyebrow">Подтверждение</span>
                 <h2 id="transfer-title">Проверьте перевод</h2>
                 <dl className="transfer-summary">
-                  <div><dt>Со счёта</dt><dd>{shortAccountId(selectedAccount.id)}</dd></div>
-                  <div><dt>Получатель</dt><dd>{shortAccountId(toAccountId.trim())}</dd></div>
-                  <div><dt>Сумма</dt><dd>{formatMoney(amountInMinorUnits, selectedAccount.currency)}</dd></div>
+                  <div><dt>Со счёта</dt><dd>{maskedCardNumber(selectedAccount.card_number)}</dd></div>
+                  <div><dt>Получатель</dt><dd>{recipient.display_name}</dd></div>
+                  <div><dt>Карта</dt><dd>{recipient.masked_card_number}</dd></div>
+                  <div><dt>Сумма</dt><dd>{formatMoney(transferValue, selectedAccount.currency)}</dd></div>
                 </dl>
                 <div className="modal-actions">
                   <button className="modal-secondary" disabled={transferring} onClick={() => setTransferStep("details")} type="button">Назад</button>
@@ -388,17 +444,29 @@ export default function Dashboard({
                 <div className="transfer-form">
                   <label>
                     <span>Счёт списания</span>
-                    <select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}>
+                    <select value={fromAccountId} onChange={(event) => {
+                      setFromAccountId(event.target.value);
+                      setRecipient(null);
+                    }}>
                       {accounts.map((account) => (
                         <option key={account.id} value={account.id}>
-                          {shortAccountId(account.id)} · {formatMoney(account.balance, account.currency)}
+                          {maskedCardNumber(account.card_number)} · {formatMoney(account.balance, account.currency)}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label>
-                    <span>Счёт получателя</span>
-                    <input autoFocus onChange={(event) => setToAccountId(event.target.value)} placeholder="acc-…" value={toAccountId} />
+                    <span>Телефон или номер карты</span>
+                    <input
+                      autoFocus
+                      inputMode="tel"
+                      onChange={(event) => {
+                        setRecipientIdentifier(event.target.value);
+                        setRecipient(null);
+                      }}
+                      placeholder="+7 999 123-45-67 или 16 цифр"
+                      value={recipientIdentifier}
+                    />
                   </label>
                   <label>
                     <span>Сумма{selectedAccount ? `, ${selectedAccount.currency}` : ""}</span>
@@ -406,9 +474,32 @@ export default function Dashboard({
                   </label>
                 </div>
                 {transferError && <p className="transfer-error" role="alert">{transferError}</p>}
-                <button className="modal-submit" disabled={accounts.length === 0} onClick={reviewTransfer} type="button">Продолжить</button>
+                <button className="modal-submit" disabled={accounts.length === 0 || transferring} onClick={() => void reviewTransfer()} type="button">
+                  {transferring ? "Ищем получателя…" : "Продолжить"}
+                </button>
               </>
             )}
+          </section>
+        </div>
+      )}
+
+      {showPhone && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowPhone(false)}>
+          <section className="account-modal" role="dialog" aria-modal="true" aria-labelledby="phone-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowPhone(false)} type="button" aria-label="Закрыть">×</button>
+            <span className="eyebrow">Профиль</span>
+            <h2 id="phone-title">Номер телефона</h2>
+            <p>Он будет использоваться только для поиска получателя перевода.</p>
+            <div className="transfer-form">
+              <label>
+                <span>Номер телефона</span>
+                <input autoFocus inputMode="tel" onChange={(event) => setPhoneNumber(event.target.value)} placeholder="+7 999 123-45-67" value={phoneNumber} />
+              </label>
+            </div>
+            {phoneError && <p className="transfer-error" role="alert">{phoneError}</p>}
+            <button className="modal-submit" disabled={savingPhone} onClick={() => void handleSavePhone()} type="button">
+              {savingPhone ? "Сохраняем…" : "Сохранить"}
+            </button>
           </section>
         </div>
       )}

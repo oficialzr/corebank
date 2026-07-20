@@ -37,6 +37,8 @@ Implemented:
 - Protected dashboard with balances, accounts, and recent transactions
 - Account opening from the dashboard
 - Guided transfers with validation, confirmation, and refreshed balances
+- Recipient lookup by phone or synthetic 16-digit transfer card number
+- Exact two-decimal money values in PostgreSQL and the API
 - Frontend component tests for authentication and banking operations
 - PostgreSQL-backed test suite
 
@@ -53,7 +55,7 @@ Not implemented yet:
 Current test inventory:
 
 ```text
-72 backend tests and 3 frontend component tests
+78 backend tests and 4 frontend component tests
 ```
 
 The tests require a reachable PostgreSQL database. The complete suite has been
@@ -296,6 +298,7 @@ GET /version
 POST /auth/register
 POST /auth/login
 GET /auth/me
+PATCH /auth/me/phone
 ```
 
 Example:
@@ -303,7 +306,7 @@ Example:
 ```bash
 curl -X POST http://127.0.0.1:8000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"alex@example.com","password":"strong-password","full_name":"Alex Ivanov"}'
+  -d '{"email":"alex@example.com","password":"strong-password","full_name":"Alex Ivanov","phone_number":"+79991234567"}'
 ```
 
 ```bash
@@ -332,6 +335,7 @@ curl -X POST http://127.0.0.1:8000/accounts \
 ### Transfers
 
 ```text
+GET /transfers/recipient?from_account_id={account_id}&identifier={phone_or_card}
 POST /transfers
 ```
 
@@ -341,7 +345,7 @@ Example:
 curl -X POST http://127.0.0.1:8000/transfers \
   -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
-  -d '{"from_account_id":"acc-001","to_account_id":"acc-002","amount":1000}'
+  -d '{"from_account_id":"acc-001","recipient":"+79991234567","amount":100.00}'
 ```
 
 ### Transactions
@@ -371,15 +375,22 @@ Accounts:
 - Account currency must be one of `RUB`, `USD`, or `EUR`.
 - New accounts start with zero balance.
 - Account IDs are UUID-based values with the `acc-` prefix.
+- Each account has a generated 16-digit test transfer number. It is not a real
+  issued payment card and has no CVV or expiry date.
+- Balances use PostgreSQL `NUMERIC(18,2)` and API values are major currency
+  units: `100.00` means one hundred, not ten thousand minor units.
 
 Transfers:
 
 - Source account must exist and belong to the authenticated user.
 - Destination account must exist.
+- A recipient can be resolved by normalized phone number or 16-digit transfer number.
+- Phone lookup selects the oldest recipient account in the source currency.
 - Source and destination accounts must be different.
 - Accounts must use the same currency.
 - Source account must have enough money.
 - Transfer amount must be greater than zero.
+- Transfer amounts use major currency units with at most two decimal places.
 - Successful transfer updates both balances.
 - Successful transfer creates a transaction record.
 - Related account rows are locked during balance updates.
@@ -395,6 +406,8 @@ Transactions:
 Users:
 
 - Registration normalizes email to lowercase.
+- Phone numbers are normalized to international format and unique when set.
+- Existing users can add a searchable phone number from the dashboard.
 - Passwords are stored as hashes, not as plain text.
 - Login returns a bearer access token.
 - `/auth/me` requires a valid bearer token.

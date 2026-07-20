@@ -171,6 +171,7 @@ Planned fields:
 id
 user_id
 account_number
+card_number
 currency
 balance
 status
@@ -190,13 +191,18 @@ Field meaning:
   - human-readable account number
   - should be unique
 
+- card_number
+  - generated 16-digit test identifier used only to route transfers
+  - is not a real issued card number and has no CVV or expiry date
+
 - currency
   - account currency
   - example values: RUB, USD, EUR
 
 - balance
   - current account balance
-  - should be stored as integer minor units or decimal with strict precision
+  - stored as `NUMERIC(18,2)` in major currency units
+  - `100.00` means one hundred units of the account currency
 
 - status
   - current account status
@@ -214,6 +220,7 @@ Important rules:
 - the ownership migration keeps pre-existing accounts nullable because their
   owner cannot be inferred safely; these legacy rows are hidden from user APIs
 - account number must be unique
+- generated transfer card number must be unique
 - account balance must not be negative in the first version
 - account balance must not change without transaction records
 - closed account should not participate in new transfers

@@ -30,5 +30,9 @@ class EmailAlreadyRegisteredError(UserError):
     pass
 
 
+class PhoneAlreadyRegisteredError(UserError):
+    pass
+
+
 class InvalidCredentialsError(UserError):
     pass

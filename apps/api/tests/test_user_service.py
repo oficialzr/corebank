@@ -13,6 +13,7 @@ def make_request(email: str = "Alex@Example.com") -> UserRegisterRequest:
         email=email,
         password="strong-password",
         full_name="Alex Ivanov",
+        phone_number="+79991234567",
     )
 
 

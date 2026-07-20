@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from corebank_api.api.auth import CurrentUser
 from corebank_api.domain.errors import (
@@ -11,8 +11,8 @@ from corebank_api.domain.errors import (
 )
 from corebank_api.errors import api_error
 from corebank_api.schemas.errors import ErrorResponse
-from corebank_api.schemas.transfer import TransferCreateRequest, TransferResponse
-from corebank_api.services.transfers import create_transfer
+from corebank_api.schemas.transfer import RecipientLookupResponse, TransferCreateRequest, TransferResponse
+from corebank_api.services.transfers import create_transfer, get_recipient
 
 router = APIRouter(prefix="/transfers", tags=["Transfers"])
 
@@ -54,6 +54,25 @@ def map_transfer_error_to_http_exception(error: TransferError) -> HTTPException:
         code=code,
         message=message,
     )
+
+
+@router.get(
+    "/recipient",
+    response_model=RecipientLookupResponse,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponse},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponse},
+    },
+)
+def get_transfer_recipient_endpoint(
+    current_user: CurrentUser,
+    from_account_id: str = Query(min_length=1),
+    identifier: str = Query(min_length=1, max_length=32),
+) -> RecipientLookupResponse:
+    try:
+        return get_recipient(from_account_id, identifier, current_user.id)
+    except TransferError as error:
+        raise map_transfer_error_to_http_exception(error) from error
 
 
 @router.post(

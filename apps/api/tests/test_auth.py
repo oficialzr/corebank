@@ -8,6 +8,7 @@ def registration_payload() -> dict[str, str]:
         "email": "Alex@Example.com",
         "password": "strong-password",
         "full_name": "Alex Ivanov",
+        "phone_number": "+79991234567",
     }
 
 
@@ -21,6 +22,7 @@ def test_register_user_returns_created_user(client) -> None:
     assert user["id"].startswith("user-")
     assert user["email"] == "alex@example.com"
     assert user["full_name"] == "Alex Ivanov"
+    assert user["phone_number"] == "+79991234567"
     assert user["is_active"] is True
     assert user["created_at"] is not None
     assert "password" not in user
@@ -57,6 +59,27 @@ def test_register_user_rejects_invalid_email(client) -> None:
     response = client.post("/auth/register", json=payload)
 
     assert response.status_code == 422
+
+
+def test_register_user_normalizes_phone_number(client) -> None:
+    payload = registration_payload()
+    payload["phone_number"] = "8 (999) 123-45-67"
+
+    response = client.post("/auth/register", json=payload)
+
+    assert response.status_code == 201
+    assert response.json()["phone_number"] == "+79991234567"
+
+
+def test_register_user_rejects_duplicate_phone(client) -> None:
+    client.post("/auth/register", json=registration_payload())
+    payload = registration_payload()
+    payload["email"] = "another@example.com"
+
+    response = client.post("/auth/register", json=payload)
+
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "phone_already_registered"
 
 
 def login_payload(password: str = "strong-password") -> dict[str, str]:
@@ -117,3 +140,13 @@ def test_auth_me_rejects_invalid_token(client) -> None:
             "message": "Invalid or expired access token",
         }
     }
+
+
+def test_update_current_user_phone(auth_client) -> None:
+    response = auth_client.patch(
+        "/auth/me/phone",
+        json={"phone_number": "8 (999) 555-44-33"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["phone_number"] == "+79995554433"

@@ -243,6 +243,29 @@
   text-decoration: underline;
 }
 
+.phone-notice {
+  margin-bottom: 20px;
+  padding: 13px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #d9dfb8;
+  border-radius: 10px;
+  background: #f8fadf;
+  color: #4f5f2c;
+  font-size: 10px;
+}
+
+.phone-notice button {
+  border: 0;
+  background: transparent;
+  color: #185c43;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .dashboard-loading {
   min-height: 430px;
   display: grid;

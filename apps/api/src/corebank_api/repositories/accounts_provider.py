@@ -18,6 +18,11 @@ def get_account_by_id(account_id: str) -> AccountResponse | None:
         return sql_accounts_repository.get_account_by_id(session, account_id)
 
 
+def get_account_by_card_number(card_number: str) -> AccountResponse | None:
+    with SessionLocal() as session:
+        return sql_accounts_repository.get_account_by_card_number(session, card_number)
+
+
 def get_account_by_id_and_user_id(account_id: str, user_id: str) -> AccountResponse | None:
     with SessionLocal() as session:
         return sql_accounts_repository.get_account_by_id_and_user_id(session, account_id, user_id)

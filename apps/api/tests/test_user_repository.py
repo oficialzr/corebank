@@ -13,6 +13,7 @@ def make_user() -> UserRecord:
         email="alex@example.com",
         password_hash="hashed-password",
         full_name="Alex Ivanov",
+        phone_number="+79991234567",
         is_active=True,
         created_at=datetime.now(UTC),
     )

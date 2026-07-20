@@ -2,6 +2,7 @@ import type {
   Account,
   ApiErrorBody,
   Currency,
+  RecipientLookup,
   TokenResponse,
   Transaction,
   TransferResponse,
@@ -20,6 +21,7 @@ const errorMessages: Record<string, string> = {
   same_account_transfer: "Нельзя перевести деньги на тот же счёт",
   currency_mismatch: "Счета должны быть открыты в одной валюте",
   insufficient_funds: "На счёте недостаточно средств",
+  phone_already_registered: "Этот номер телефона уже используется",
 };
 
 export class ApiError extends Error {
@@ -97,6 +99,7 @@ export function register(payload: {
   full_name: string;
   email: string;
   password: string;
+  phone_number: string;
 }): Promise<User> {
   return request<User>("/auth/register", {
     method: "POST",
@@ -117,6 +120,13 @@ export function getCurrentUser(token: string): Promise<User> {
   });
 }
 
+export function updatePhoneNumber(phoneNumber: string): Promise<User> {
+  return authorizedRequest<User>("/auth/me/phone", {
+    method: "PATCH",
+    body: JSON.stringify({ phone_number: phoneNumber }),
+  });
+}
+
 export function getAccounts(): Promise<Account[]> {
   return authorizedRequest<Account[]>("/accounts");
 }
@@ -134,11 +144,22 @@ export function getTransactions(): Promise<Transaction[]> {
 
 export function createTransfer(payload: {
   from_account_id: string;
-  to_account_id: string;
+  recipient: string;
   amount: number;
 }): Promise<TransferResponse> {
   return authorizedRequest<TransferResponse>("/transfers", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getTransferRecipient(
+  fromAccountId: string,
+  identifier: string,
+): Promise<RecipientLookup> {
+  const query = new URLSearchParams({
+    from_account_id: fromAccountId,
+    identifier,
+  });
+  return authorizedRequest<RecipientLookup>(`/transfers/recipient?${query}`);
 }

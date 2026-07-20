@@ -25,6 +25,7 @@ def test_sql_accounts_repository_saves_and_reads_account() -> None:
                 id="acc-test-001",
                 user_id="user-alex",
                 owner_name="SQL Test User",
+                card_number="2200000000000020",
                 balance=5000,
                 currency="RUB",
                 created_at=datetime.now(UTC),

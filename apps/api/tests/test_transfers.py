@@ -218,3 +218,42 @@ def test_transfers_require_authentication(client) -> None:
     )
 
     assert response.status_code == 401
+
+
+def test_find_recipient_by_phone(auth_client) -> None:
+    response = auth_client.get(
+        "/transfers/recipient",
+        params={"from_account_id": "acc-001", "identifier": "+7 999 000-00-02"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "display_name": "Maria Petrova",
+        "masked_card_number": "•••• 0012",
+        "currency": "RUB",
+    }
+
+
+def test_find_recipient_by_card_number(auth_client) -> None:
+    response = auth_client.get(
+        "/transfers/recipient",
+        params={"from_account_id": "acc-001", "identifier": "2200 0000 0000 0012"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["display_name"] == "Maria Petrova"
+
+
+def test_create_transfer_by_phone(auth_client) -> None:
+    response = auth_client.post(
+        "/transfers",
+        json={
+            "from_account_id": "acc-001",
+            "recipient": "+79990000002",
+            "amount": 125.50,
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["to_account_id"] == "acc-002"
+    assert response.json()["amount"] == 125.50

@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   full_name: string;
+  phone_number: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -17,6 +18,7 @@ export interface Account {
   id: string;
   user_id: string;
   owner_name: string;
+  card_number: string;
   balance: number;
   currency: Currency;
   created_at: string;
@@ -38,6 +40,12 @@ export interface TransferResponse {
   to_account_id: string;
   amount: number;
   status: "completed";
+}
+
+export interface RecipientLookup {
+  display_name: string;
+  masked_card_number: string;
+  currency: Currency;
 }
 
 export interface ApiErrorBody {
