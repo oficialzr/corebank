@@ -212,6 +212,7 @@ tempCodeRunnerFile.py
 # Frontend
 node_modules/
 apps/web/dist/
+*.tsbuildinfo
 
 # Marimo
 marimo/_static/

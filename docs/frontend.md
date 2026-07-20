@@ -37,6 +37,9 @@ introduced when the application gains more server state and complex forms.
 - user-scoped account and transaction loading
 - account opening in RUB, USD, or EUR
 - recent incoming and outgoing transfer history
+- guided outgoing transfer flow with client-side validation and confirmation
+- localized business errors and refreshed balances after a successful transfer
+- component tests for login, account opening, and transfers
 - loading, empty, expired-session, and API error states
 
 ## Delivery plan
@@ -63,8 +66,10 @@ introduced when the application gains more server state and complex forms.
 
 ### 4. Transfers
 
-- Build a guided transfer form with account selection and amount formatting.
-- Add confirmation, idempotency support, and a result receipt.
+- Build a guided transfer form with account selection and amount formatting
+  (implemented).
+- Add confirmation and a result state (implemented).
+- Add backend idempotency support before enabling automatic retries.
 - Add optimistic feedback only where money-operation semantics allow it.
 
 ### 5. Cards
@@ -74,6 +79,7 @@ introduced when the application gains more server state and complex forms.
 
 ### 6. Quality and production readiness
 
-- Add component and end-to-end tests for authentication and transfers.
+- Add component tests for authentication and transfers (implemented).
+- Add browser-level end-to-end tests for the critical user journeys.
 - Add accessibility checks, analytics, monitoring, and a strict CSP.
 - Keep the committed dependency lockfile current and build the frontend in CI.

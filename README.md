@@ -36,6 +36,8 @@ Implemented:
 - Dockerized web frontend with an API reverse proxy
 - Protected dashboard with balances, accounts, and recent transactions
 - Account opening from the dashboard
+- Guided transfers with validation, confirmation, and refreshed balances
+- Frontend component tests for authentication and banking operations
 - PostgreSQL-backed test suite
 
 Not implemented yet:
@@ -51,7 +53,7 @@ Not implemented yet:
 Current test inventory:
 
 ```text
-72 tests collected
+72 backend tests and 3 frontend component tests
 ```
 
 The tests require a reachable PostgreSQL database. The complete suite has been
@@ -239,6 +241,12 @@ requests from `/api` to the FastAPI application at `http://127.0.0.1:8000`.
 The frontend implementation plan is documented in
 [docs/frontend.md](docs/frontend.md).
 
+Run the frontend component tests with:
+
+```bash
+make test-web
+```
+
 ## Run Tests
 
 Start PostgreSQL first, then run migrations and tests:
@@ -382,8 +390,8 @@ Users:
 Near-term:
 
 - Keep the PostgreSQL-backed test suite green.
-- Build the guided transfer flow in the dashboard.
 - Generate frontend API types from the OpenAPI schema.
+- Add idempotency keys before retrying money operations automatically.
 - Move authentication from local storage to secure HttpOnly cookies.
 - Keep README and roadmap synchronized with implemented behavior.
 

@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ApiError, createAccount, getAccounts, getTransactions } from "./api";
+import {
+  ApiError,
+  createAccount,
+  createTransfer,
+  getAccounts,
+  getTransactions,
+} from "./api";
 import type { Account, Currency, Transaction, User } from "./types";
 import "./dashboard.css";
 
@@ -20,6 +26,17 @@ function formatMoney(amount: number, currency: Currency): string {
 
 function shortAccountId(id: string): string {
   return `•• ${id.slice(-8).toUpperCase()}`;
+}
+
+function amountToMinorUnits(value: string): number | null {
+  const normalized = value.trim().replace(",", ".");
+
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
+    return null;
+  }
+
+  const amount = Math.round(Number(normalized) * 100);
+  return amount > 0 ? amount : null;
 }
 
 function DashboardLogo() {
@@ -45,6 +62,13 @@ export default function Dashboard({
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [currency, setCurrency] = useState<Currency>("RUB");
   const [creating, setCreating] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [transferStep, setTransferStep] = useState<"details" | "confirm" | "success">("details");
+  const [fromAccountId, setFromAccountId] = useState("");
+  const [toAccountId, setToAccountId] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
+  const [transferError, setTransferError] = useState("");
+  const [transferring, setTransferring] = useState(false);
 
   const loadDashboard = useCallback(async () => {
     setError("");
@@ -86,6 +110,83 @@ export default function Dashboard({
     }, {});
   }, [accounts]);
 
+  const selectedAccount = accounts.find((account) => account.id === fromAccountId);
+  const amountInMinorUnits = amountToMinorUnits(transferAmount);
+
+  function openTransfer() {
+    setFromAccountId(accounts[0]?.id ?? "");
+    setToAccountId("");
+    setTransferAmount("");
+    setTransferError("");
+    setTransferStep("details");
+    setShowTransfer(true);
+  }
+
+  function closeTransfer() {
+    if (!transferring) {
+      setShowTransfer(false);
+    }
+  }
+
+  function reviewTransfer() {
+    setTransferError("");
+
+    if (!fromAccountId || !selectedAccount) {
+      setTransferError("Выберите счёт списания");
+      return;
+    }
+    if (!toAccountId.trim()) {
+      setTransferError("Укажите счёт получателя");
+      return;
+    }
+    if (toAccountId.trim() === fromAccountId) {
+      setTransferError("Нельзя перевести деньги на тот же счёт");
+      return;
+    }
+    if (amountInMinorUnits === null) {
+      setTransferError("Введите сумму больше нуля, не более двух знаков после запятой");
+      return;
+    }
+    if (amountInMinorUnits > selectedAccount.balance) {
+      setTransferError("На счёте недостаточно средств");
+      return;
+    }
+
+    setTransferStep("confirm");
+  }
+
+  async function handleTransfer() {
+    if (!selectedAccount || amountInMinorUnits === null) {
+      setTransferStep("details");
+      return;
+    }
+
+    setTransferring(true);
+    setTransferError("");
+    try {
+      await createTransfer({
+        from_account_id: selectedAccount.id,
+        to_account_id: toAccountId.trim(),
+        amount: amountInMinorUnits,
+      });
+      await loadDashboard();
+      setTransferStep("success");
+    } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
+        onLogout();
+        return;
+      }
+      setTransferError(
+        requestError instanceof ApiError
+          ? requestError.message
+          : "Не удалось выполнить перевод",
+      );
+      setTransferStep("details");
+    } finally {
+      setTransferring(false);
+    }
+  }
+
   async function handleCreateAccount() {
     setCreating(true);
     setError("");
@@ -116,7 +217,7 @@ export default function Dashboard({
           <a className="active" href="#overview"><span>⌂</span> Обзор</a>
           <a href="#accounts"><span>▣</span> Счета</a>
           <a href="#transactions"><span>↕</span> Операции</a>
-          <span className="disabled"><span>→</span> Переводы <small>скоро</small></span>
+          <button className="sidebar-action" disabled={accounts.length === 0} onClick={openTransfer} type="button"><span>→</span> Переводы</button>
           <span className="disabled"><span>◇</span> Карты <small>скоро</small></span>
         </nav>
         <div className="sidebar-footer">
@@ -134,9 +235,14 @@ export default function Dashboard({
             </span>
             <h1>Добрый день, {user.full_name.split(" ")[0]}</h1>
           </div>
-          <button className="new-account-button" onClick={() => setShowNewAccount(true)} type="button">
-            <span>+</span> Открыть счёт
-          </button>
+          <div className="dashboard-actions">
+            <button className="transfer-button" disabled={accounts.length === 0} onClick={openTransfer} type="button">
+              <span>→</span> Перевести
+            </button>
+            <button className="new-account-button" onClick={() => setShowNewAccount(true)} type="button">
+              <span>+</span> Открыть счёт
+            </button>
+          </div>
         </header>
 
         {error && (
@@ -242,6 +348,67 @@ export default function Dashboard({
             <button className="modal-submit" disabled={creating} onClick={() => void handleCreateAccount()} type="button">
               {creating ? "Открываем…" : "Открыть счёт"}
             </button>
+          </section>
+        </div>
+      )}
+
+      {showTransfer && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={closeTransfer}>
+          <section className="account-modal transfer-modal" role="dialog" aria-modal="true" aria-labelledby="transfer-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" disabled={transferring} onClick={closeTransfer} type="button" aria-label="Закрыть">×</button>
+
+            {transferStep === "success" ? (
+              <div className="transfer-success">
+                <span aria-hidden="true">✓</span>
+                <h2 id="transfer-title">Перевод выполнен</h2>
+                <p>Баланс и история операций уже обновлены.</p>
+                <button className="modal-submit" onClick={closeTransfer} type="button">Готово</button>
+              </div>
+            ) : transferStep === "confirm" && selectedAccount && amountInMinorUnits !== null ? (
+              <>
+                <span className="eyebrow">Подтверждение</span>
+                <h2 id="transfer-title">Проверьте перевод</h2>
+                <dl className="transfer-summary">
+                  <div><dt>Со счёта</dt><dd>{shortAccountId(selectedAccount.id)}</dd></div>
+                  <div><dt>Получатель</dt><dd>{shortAccountId(toAccountId.trim())}</dd></div>
+                  <div><dt>Сумма</dt><dd>{formatMoney(amountInMinorUnits, selectedAccount.currency)}</dd></div>
+                </dl>
+                <div className="modal-actions">
+                  <button className="modal-secondary" disabled={transferring} onClick={() => setTransferStep("details")} type="button">Назад</button>
+                  <button className="modal-submit" disabled={transferring} onClick={() => void handleTransfer()} type="button">
+                    {transferring ? "Переводим…" : "Подтвердить"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="eyebrow">Новая операция</span>
+                <h2 id="transfer-title">Перевести деньги</h2>
+                <p>Укажите счёт получателя и сумму перевода.</p>
+                <div className="transfer-form">
+                  <label>
+                    <span>Счёт списания</span>
+                    <select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}>
+                      {accounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                          {shortAccountId(account.id)} · {formatMoney(account.balance, account.currency)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Счёт получателя</span>
+                    <input autoFocus onChange={(event) => setToAccountId(event.target.value)} placeholder="acc-…" value={toAccountId} />
+                  </label>
+                  <label>
+                    <span>Сумма{selectedAccount ? `, ${selectedAccount.currency}` : ""}</span>
+                    <input inputMode="decimal" onChange={(event) => setTransferAmount(event.target.value)} placeholder="0,00" value={transferAmount} />
+                  </label>
+                </div>
+                {transferError && <p className="transfer-error" role="alert">{transferError}</p>}
+                <button className="modal-submit" disabled={accounts.length === 0} onClick={reviewTransfer} type="button">Продолжить</button>
+              </>
+            )}
           </section>
         </div>
       )}

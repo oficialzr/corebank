@@ -4,6 +4,7 @@ import type {
   Currency,
   TokenResponse,
   Transaction,
+  TransferResponse,
   User,
 } from "./types";
 
@@ -14,6 +15,11 @@ const errorMessages: Record<string, string> = {
   email_already_registered: "Пользователь с такой почтой уже зарегистрирован",
   invalid_credentials: "Неверная почта или пароль",
   invalid_token: "Сессия истекла. Войдите снова",
+  source_account_not_found: "Счёт списания не найден",
+  destination_account_not_found: "Счёт получателя не найден",
+  same_account_transfer: "Нельзя перевести деньги на тот же счёт",
+  currency_mismatch: "Счета должны быть открыты в одной валюте",
+  insufficient_funds: "На счёте недостаточно средств",
 };
 
 export class ApiError extends Error {
@@ -124,4 +130,15 @@ export function createAccount(currency: Currency): Promise<Account> {
 
 export function getTransactions(): Promise<Transaction[]> {
   return authorizedRequest<Transaction[]>("/transactions");
+}
+
+export function createTransfer(payload: {
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+}): Promise<TransferResponse> {
+  return authorizedRequest<TransferResponse>("/transfers", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }

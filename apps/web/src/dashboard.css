@@ -32,6 +32,7 @@
 }
 
 .dashboard-sidebar nav > a,
+.dashboard-sidebar nav > .sidebar-action,
 .dashboard-sidebar nav > .disabled {
   min-height: 43px;
   padding: 0 12px;
@@ -44,12 +45,30 @@
   font-weight: 600;
 }
 
+.dashboard-sidebar nav > .sidebar-action {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
 .dashboard-sidebar nav > a > span,
+.dashboard-sidebar nav > .sidebar-action > span,
 .dashboard-sidebar nav > .disabled > span {
   width: 20px;
   color: #8b958e;
   font-size: 17px;
   text-align: center;
+}
+
+.dashboard-sidebar nav > .sidebar-action:hover {
+  background: #edf2ec;
+  color: #185c43;
+}
+
+.dashboard-sidebar nav > .sidebar-action:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .dashboard-sidebar nav > a.active {
@@ -172,6 +191,29 @@
   font-size: 11px;
   font-weight: 700;
   box-shadow: 0 10px 25px rgba(24, 92, 67, 0.15);
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.transfer-button {
+  height: 43px;
+  padding: 0 17px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #cbd6cd;
+  border-radius: 11px;
+  background: #fbfcf9;
+  color: #185c43;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.transfer-button:disabled {
+  opacity: 0.45;
 }
 
 .new-account-button span {
@@ -575,6 +617,114 @@
   opacity: 0.6;
 }
 
+.transfer-form {
+  margin: 22px 0 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.transfer-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.transfer-form label > span {
+  color: #5f6c64;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.transfer-form input,
+.transfer-form select {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid #d4dbd3;
+  border-radius: 10px;
+  outline: none;
+  background: #f7f9f5;
+  color: #28342d;
+  font: inherit;
+  font-size: 11px;
+}
+
+.transfer-form input:focus,
+.transfer-form select:focus {
+  border-color: #185c43;
+  box-shadow: 0 0 0 3px rgba(24, 92, 67, 0.08);
+}
+
+.transfer-error {
+  margin: 0 0 16px !important;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #fff0ec;
+  color: #963f2e !important;
+}
+
+.transfer-summary {
+  margin: 24px 0;
+  display: grid;
+  border-top: 1px solid #e0e5df;
+}
+
+.transfer-summary div {
+  padding: 13px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #e0e5df;
+}
+
+.transfer-summary dt {
+  color: #7a857e;
+  font-size: 10px;
+}
+
+.transfer-summary dd {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 9px;
+}
+
+.modal-secondary {
+  border: 1px solid #d4dbd3;
+  border-radius: 10px;
+  background: transparent;
+  color: #536058;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.transfer-success {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.transfer-success > span {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: #e5f0e8;
+  color: #26704e;
+  font-size: 25px;
+}
+
+.transfer-success p {
+  margin-bottom: 24px;
+}
+
 @media (max-width: 900px) {
   .dashboard-shell {
     grid-template-columns: 78px minmax(0, 1fr);
@@ -590,6 +740,7 @@
 
   .dashboard-brand > span:last-child,
   .dashboard-sidebar nav > a:not(.active),
+  .dashboard-sidebar nav > .sidebar-action,
   .dashboard-sidebar nav > .disabled,
   .sidebar-footer > div:nth-child(2),
   .sidebar-footer button {
@@ -671,6 +822,15 @@
 
   .new-account-button {
     width: 100%;
+    justify-content: center;
+  }
+
+  .dashboard-actions {
+    width: 100%;
+  }
+
+  .dashboard-actions > button {
+    flex: 1;
     justify-content: center;
   }
 

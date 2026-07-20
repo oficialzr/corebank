@@ -32,6 +32,14 @@ export interface Transaction {
   created_at: string;
 }
 
+export interface TransferResponse {
+  transaction_id: string;
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  status: "completed";
+}
+
 export interface ApiErrorBody {
   detail?: {
     code?: string;
