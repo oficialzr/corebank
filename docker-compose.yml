@@ -40,5 +40,16 @@ services:
     depends_on:
       - api
 
+  adminer:
+    image: adminer:4
+    container_name: corebank-adminer-compose
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   corebank_postgres_data:

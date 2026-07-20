@@ -171,6 +171,24 @@ The web application will be available at:
 http://127.0.0.1:3000
 ```
 
+Adminer, the browser database interface, will be available at:
+
+```text
+http://127.0.0.1:8080
+```
+
+Use `PostgreSQL` as the system and connect with:
+
+```text
+Server: postgres
+Username: corebank
+Password: corebank
+Database: corebank
+```
+
+The server name is `postgres` because Adminer connects to the database through
+the internal Docker Compose network.
+
 Swagger UI:
 
 ```text
