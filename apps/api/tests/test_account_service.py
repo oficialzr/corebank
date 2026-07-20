@@ -10,14 +10,14 @@ pytestmark = pytest.mark.db
 
 
 def test_list_accounts_service_returns_accounts() -> None:
-    accounts = list_accounts()
+    accounts = list_accounts("user-alex")
 
-    assert len(accounts) >= 2
+    assert len(accounts) == 1
     assert accounts[0].id == "acc-001"
 
 
 def test_get_account_by_id_service_returns_account() -> None:
-    account = get_account_by_id("acc-001")
+    account = get_account_by_id("acc-001", "user-alex")
 
     assert account is not None
     assert account.id == "acc-001"
@@ -25,20 +25,19 @@ def test_get_account_by_id_service_returns_account() -> None:
 
 
 def test_get_account_by_id_service_returns_none_for_unknown_account() -> None:
-    account = get_account_by_id("acc-999")
+    account = get_account_by_id("acc-999", "user-alex")
 
     assert account is None
 
 
 def test_create_account_service_creates_account() -> None:
     request = AccountCreateRequest(
-        owner_name="Ivan Sidorov",
         currency="RUB",
     )
 
-    account = create_account(request)
+    account = create_account(request, user_id="user-alex", owner_name="Alex Ivanov")
 
     assert account.id.startswith("acc-")
-    assert account.owner_name == "Ivan Sidorov"
+    assert account.owner_name == "Alex Ivanov"
     assert account.balance == 0
     assert account.currency == "RUB"

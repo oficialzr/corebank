@@ -1,9 +1,10 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from corebank_api.database.models import TransactionModel
+from corebank_api.database.models import AccountModel, TransactionModel
 from corebank_api.schemas.transaction import TransactionResponse
 
 
@@ -24,11 +25,54 @@ def get_all_transactions(session: Session) -> list[TransactionResponse]:
     return [model_to_schema(transaction) for transaction in transactions]
 
 
+def get_transactions_by_user_id(
+    session: Session,
+    user_id: str,
+) -> list[TransactionResponse]:
+    owned_account_ids = select(AccountModel.id).where(AccountModel.user_id == user_id)
+    transactions = (
+        session.query(TransactionModel)
+        .filter(
+            or_(
+                TransactionModel.from_account_id.in_(owned_account_ids),
+                TransactionModel.to_account_id.in_(owned_account_ids),
+            )
+        )
+        .order_by(TransactionModel.created_at.desc())
+        .all()
+    )
+    return [model_to_schema(transaction) for transaction in transactions]
+
+
 def get_transaction_by_id(
     session: Session,
     transaction_id: str,
 ) -> TransactionResponse | None:
     transaction = session.get(TransactionModel, transaction_id)
+
+    if transaction is None:
+        return None
+
+    return model_to_schema(transaction)
+
+
+def get_transaction_by_id_and_user_id(
+    session: Session,
+    transaction_id: str,
+    user_id: str,
+) -> TransactionResponse | None:
+    owned_account_ids = select(AccountModel.id).where(AccountModel.user_id == user_id)
+    transaction = (
+        session.query(TransactionModel)
+        .filter(
+            TransactionModel.id == transaction_id,
+            or_(
+                TransactionModel.from_account_id.in_(owned_account_ids),
+                TransactionModel.to_account_id.in_(owned_account_ids),
+            ),
+        )
+        .one_or_none()
+    )
 
     if transaction is None:
         return None
@@ -50,6 +94,23 @@ def get_transactions_by_account_id(
     )
 
     return [model_to_schema(transaction) for transaction in transactions]
+
+
+def get_transactions_by_account_id_and_user_id(
+    session: Session,
+    account_id: str,
+    user_id: str,
+) -> list[TransactionResponse]:
+    account_exists = (
+        session.query(AccountModel.id)
+        .filter(AccountModel.id == account_id, AccountModel.user_id == user_id)
+        .first()
+    )
+
+    if account_exists is None:
+        return []
+
+    return get_transactions_by_account_id(session, account_id)
 
 
 def save_transaction(

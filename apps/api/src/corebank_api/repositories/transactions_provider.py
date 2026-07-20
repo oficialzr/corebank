@@ -8,9 +8,26 @@ def get_all_transactions() -> list[TransactionResponse]:
         return sql_transactions_repository.get_all_transactions(session)
 
 
+def get_transactions_by_user_id(user_id: str) -> list[TransactionResponse]:
+    with SessionLocal() as session:
+        return sql_transactions_repository.get_transactions_by_user_id(session, user_id)
+
+
 def get_transaction_by_id(transaction_id: str) -> TransactionResponse | None:
     with SessionLocal() as session:
         return sql_transactions_repository.get_transaction_by_id(session, transaction_id)
+
+
+def get_transaction_by_id_and_user_id(
+    transaction_id: str,
+    user_id: str,
+) -> TransactionResponse | None:
+    with SessionLocal() as session:
+        return sql_transactions_repository.get_transaction_by_id_and_user_id(
+            session,
+            transaction_id,
+            user_id,
+        )
 
 
 def get_transactions_by_account_id(account_id: str) -> list[TransactionResponse]:
@@ -18,6 +35,18 @@ def get_transactions_by_account_id(account_id: str) -> list[TransactionResponse]
         return sql_transactions_repository.get_transactions_by_account_id(
             session,
             account_id,
+        )
+
+
+def get_transactions_by_account_id_and_user_id(
+    account_id: str,
+    user_id: str,
+) -> list[TransactionResponse]:
+    with SessionLocal() as session:
+        return sql_transactions_repository.get_transactions_by_account_id_and_user_id(
+            session,
+            account_id,
+            user_id,
         )
 
 

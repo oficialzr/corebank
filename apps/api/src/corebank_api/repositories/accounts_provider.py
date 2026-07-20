@@ -8,9 +8,19 @@ def get_all_accounts() -> list[AccountResponse]:
         return sql_accounts_repository.get_all_accounts(session)
 
 
+def get_accounts_by_user_id(user_id: str) -> list[AccountResponse]:
+    with SessionLocal() as session:
+        return sql_accounts_repository.get_accounts_by_user_id(session, user_id)
+
+
 def get_account_by_id(account_id: str) -> AccountResponse | None:
     with SessionLocal() as session:
         return sql_accounts_repository.get_account_by_id(session, account_id)
+
+
+def get_account_by_id_and_user_id(account_id: str, user_id: str) -> AccountResponse | None:
+    with SessionLocal() as session:
+        return sql_accounts_repository.get_account_by_id_and_user_id(session, account_id, user_id)
 
 
 def save_account(account: AccountResponse) -> AccountResponse:

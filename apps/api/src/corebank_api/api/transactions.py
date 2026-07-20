@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Query, status
 
+from corebank_api.api.auth import CurrentUser
 from corebank_api.errors import api_error
 from corebank_api.schemas.errors import ErrorResponse
 from corebank_api.schemas.transaction import TransactionResponse
@@ -23,6 +24,7 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
     },
 )
 def list_transactions_endpoint(
+    current_user: CurrentUser,
     account_id: str | None = Query(default=None, min_length=1),
 ) -> list[TransactionResponse]:
     if account_id is not None:
@@ -35,9 +37,9 @@ def list_transactions_endpoint(
                 message="Account ID must not be blank",
             )
 
-        return list_transactions_by_account_id(account_id)
+        return list_transactions_by_account_id(account_id, current_user.id)
 
-    return list_transactions()
+    return list_transactions(current_user.id)
 
 
 @router.get(
@@ -50,8 +52,8 @@ def list_transactions_endpoint(
         }
     },
 )
-def get_transaction_endpoint(transaction_id: str) -> TransactionResponse:
-    transaction = get_transaction(transaction_id)
+def get_transaction_endpoint(transaction_id: str, current_user: CurrentUser) -> TransactionResponse:
+    transaction = get_transaction(transaction_id, current_user.id)
 
     if transaction is None:
         raise api_error(

@@ -32,7 +32,7 @@ def test_create_transfer_service_moves_money_between_accounts() -> None:
         amount=1000,
     )
 
-    response = create_transfer(request)
+    response = create_transfer(request, "user-alex")
 
     transaction = get_transaction_by_id(response.transaction_id)
     from_account = get_account_by_id("acc-001")
@@ -61,7 +61,7 @@ def test_create_transfer_service_raises_404_for_unknown_source_account() -> None
     )
 
     with pytest.raises(SourceAccountNotFoundError):
-        create_transfer(request)
+        create_transfer(request, "user-alex")
 
 
 def test_create_transfer_service_raises_404_for_unknown_destination_account() -> None:
@@ -72,7 +72,7 @@ def test_create_transfer_service_raises_404_for_unknown_destination_account() ->
     )
 
     with pytest.raises(DestinationAccountNotFoundError):
-        create_transfer(request)
+        create_transfer(request, "user-alex")
 
 
 def test_create_transfer_service_rejects_transfer_to_same_account() -> None:
@@ -83,7 +83,7 @@ def test_create_transfer_service_rejects_transfer_to_same_account() -> None:
     )
 
     with pytest.raises(SameAccountTransferError):
-        create_transfer(request)
+        create_transfer(request, "user-alex")
 
 
 def test_create_transfer_service_rejects_insufficient_funds() -> None:
@@ -94,15 +94,16 @@ def test_create_transfer_service_rejects_insufficient_funds() -> None:
     )
 
     with pytest.raises(InsufficientFundsError):
-        create_transfer(request)
+        create_transfer(request, "user-alex")
 
 
 def test_create_transfer_service_rejects_currency_mismatch() -> None:
     usd_account = create_account(
         AccountCreateRequest(
-            owner_name="Usd User",
             currency="USD",
         ),
+        user_id="user-alex",
+        owner_name="Alex Ivanov",
     )
 
     request = TransferCreateRequest(
@@ -112,7 +113,7 @@ def test_create_transfer_service_rejects_currency_mismatch() -> None:
     )
 
     with pytest.raises(CurrencyMismatchError):
-        create_transfer(request)
+        create_transfer(request, "user-alex")
 
 
 def test_create_transfer_service_rolls_back_when_transaction_save_fails(
@@ -133,7 +134,7 @@ def test_create_transfer_service_rolls_back_when_transaction_save_fails(
     )
 
     with pytest.raises(RuntimeError):
-        create_transfer(request)
+        create_transfer(request, "user-alex")
 
     from_account = get_account_by_id("acc-001")
     to_account = get_account_by_id("acc-002")
@@ -165,7 +166,7 @@ def test_create_transfer_service_prevents_concurrent_overspending() -> None:
 
     def run_transfer():
         try:
-            create_transfer(request)
+            create_transfer(request, "user-alex")
             return "completed"
         except InsufficientFundsError:
             return "insufficient_funds"

@@ -7,6 +7,7 @@ from corebank_api.schemas.account import AccountResponse
 def model_to_schema(account: AccountModel) -> AccountResponse:
     return AccountResponse(
         id=account.id,
+        user_id=account.user_id,
         owner_name=account.owner_name,
         balance=account.balance,
         currency=account.currency,
@@ -19,8 +20,35 @@ def get_all_accounts(session: Session) -> list[AccountResponse]:
     return [model_to_schema(account) for account in accounts]
 
 
+def get_accounts_by_user_id(session: Session, user_id: str) -> list[AccountResponse]:
+    accounts = (
+        session.query(AccountModel)
+        .filter(AccountModel.user_id == user_id)
+        .order_by(AccountModel.created_at)
+        .all()
+    )
+    return [model_to_schema(account) for account in accounts]
+
+
 def get_account_by_id(session: Session, account_id: str) -> AccountResponse | None:
     account = session.get(AccountModel, account_id)
+
+    if account is None:
+        return None
+
+    return model_to_schema(account)
+
+
+def get_account_by_id_and_user_id(
+    session: Session,
+    account_id: str,
+    user_id: str,
+) -> AccountResponse | None:
+    account = (
+        session.query(AccountModel)
+        .filter(AccountModel.id == account_id, AccountModel.user_id == user_id)
+        .one_or_none()
+    )
 
     if account is None:
         return None
@@ -43,6 +71,7 @@ def get_account_by_id_for_update(
 def save_account(session: Session, account: AccountResponse) -> AccountResponse:
     account_model = AccountModel(
         id=account.id,
+        user_id=account.user_id,
         owner_name=account.owner_name,
         balance=account.balance,
         currency=str(account.currency),

@@ -17,7 +17,7 @@ from corebank_api.schemas.transfer import (
 )
 
 
-def create_transfer(request: TransferCreateRequest) -> TransferResponse:
+def create_transfer(request: TransferCreateRequest, user_id: str) -> TransferResponse:
     with SessionLocal() as session:
         account_ids_to_lock = sorted(
             [
@@ -39,6 +39,9 @@ def create_transfer(request: TransferCreateRequest) -> TransferResponse:
         to_account = locked_accounts[request.to_account_id]
 
         if from_account is None:
+            raise SourceAccountNotFoundError
+
+        if from_account.user_id != user_id:
             raise SourceAccountNotFoundError
 
         if to_account is None:

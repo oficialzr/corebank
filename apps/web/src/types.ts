@@ -1,0 +1,40 @@
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export type Currency = "RUB" | "USD" | "EUR";
+
+export interface Account {
+  id: string;
+  user_id: string;
+  owner_name: string;
+  balance: number;
+  currency: Currency;
+  created_at: string;
+}
+
+export interface Transaction {
+  id: string;
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  currency: Currency;
+  status: "completed";
+  created_at: string;
+}
+
+export interface ApiErrorBody {
+  detail?: {
+    code?: string;
+    message?: string;
+  } | Array<{ msg?: string }>;
+}

@@ -211,6 +211,8 @@ Field meaning:
 Important rules:
 
 - account belongs to exactly one user
+- the ownership migration keeps pre-existing accounts nullable because their
+  owner cannot be inferred safely; these legacy rows are hidden from user APIs
 - account number must be unique
 - account balance must not be negative in the first version
 - account balance must not change without transaction records

@@ -1,4 +1,4 @@
-.PHONY: run-api run-api-test-env test lint format fix check migrate docker-up docker-down docker-ps docker-logs-api
+.PHONY: run-api run-api-test-env run-web build-web test lint format fix check migrate docker-up docker-down docker-ps docker-logs-api
 
 TEST_DATABASE_URL=postgresql+psycopg://corebank:corebank@localhost:5433/corebank
 
@@ -7,6 +7,12 @@ run-api:
 
 run-api-test-env:
 	COREBANK_ENVIRONMENT=test uvicorn corebank_api.main:app --reload --app-dir apps/api/src
+
+run-web:
+	npm --prefix apps/web run dev
+
+build-web:
+	npm --prefix apps/web run build
 
 test:
 	COREBANK_DATABASE_URL=$(TEST_DATABASE_URL) pytest

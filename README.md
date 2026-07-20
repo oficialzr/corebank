@@ -8,8 +8,8 @@ tests, and a basic JWT authentication layer.
 
 ## Current Status
 
-Current phase: **Core banking MVP is implemented. Stabilization and auth
-foundation are in progress.**
+Current phase: **Authenticated core banking MVP and the first user dashboard
+are implemented.**
 
 Implemented:
 
@@ -20,6 +20,8 @@ Implemented:
 - User registration API
 - User login API
 - Bearer token authentication with JWT
+- User-owned accounts and authorization on banking endpoints
+- User-scoped transaction history and protected outgoing transfers
 - Current user endpoint
 - Password hashing with `pwdlib[argon2]`
 - PostgreSQL persistence through SQLAlchemy repositories
@@ -29,12 +31,15 @@ Implemented:
 - CI workflow with PostgreSQL service, lint, migrations, and tests
 - Standardized business error responses with stable error codes
 - OpenAPI error response schemas for custom API errors
+- React and TypeScript landing page with registration and login
+- Persistent frontend session restored through the current-user endpoint
+- Dockerized web frontend with an API reverse proxy
+- Protected dashboard with balances, accounts, and recent transactions
+- Account opening from the dashboard
 - PostgreSQL-backed test suite
 
 Not implemented yet:
 
-- Fine-grained authorization on banking endpoints
-- Account ownership links between users and accounts
 - Cards
 - Audit events
 - Idempotency keys
@@ -46,12 +51,11 @@ Not implemented yet:
 Current test inventory:
 
 ```text
-67 tests collected
+72 tests collected
 ```
 
-The tests require a reachable PostgreSQL database. In this environment the test
-suite was collected successfully, but the tests were skipped because PostgreSQL
-was not available.
+The tests require a reachable PostgreSQL database. The complete suite has been
+verified against PostgreSQL 16.
 
 ## Tech Stack
 
@@ -66,13 +70,17 @@ was not available.
 - Ruff
 - Uvicorn
 - Docker Compose
+- React
+- TypeScript
+- Vite
+- Nginx
 
 ## Project Structure
 
 ```text
 corebank/
 ├── apps/
-│   └── api/
+│   ├── api/
 │       ├── migrations/
 │       ├── src/
 │       │   └── corebank_api/
@@ -87,6 +95,10 @@ corebank/
 │       ├── tests/
 │       ├── Dockerfile
 │       └── requirements.txt
+│   └── web/
+│       ├── src/
+│       ├── Dockerfile
+│       └── package.json
 ├── docs/
 ├── docker-compose.yml
 ├── Makefile
@@ -111,6 +123,9 @@ The core banking MVP includes:
 - Hash user passwords before saving
 - Issue JWT access tokens
 - Read the current user from a bearer token
+- Isolate accounts and transactions by the current user
+- Allow transfers only from accounts owned by the current user
+- Display real account data in the protected web dashboard
 - Run migrations
 - Run tests locally and in CI
 - Start the API locally or with Docker Compose
@@ -146,6 +161,12 @@ The API will be available at:
 
 ```text
 http://127.0.0.1:8000
+```
+
+The web application will be available at:
+
+```text
+http://127.0.0.1:3000
 ```
 
 Swagger UI:
@@ -202,6 +223,21 @@ Equivalent direct command:
 ```bash
 uvicorn corebank_api.main:app --reload --app-dir apps/api/src
 ```
+
+## Run Web Locally
+
+The frontend requires Node.js 22+. Install its dependencies and start Vite:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+The development site is available at `http://127.0.0.1:5173` and proxies
+requests from `/api` to the FastAPI application at `http://127.0.0.1:8000`.
+The frontend implementation plan is documented in
+[docs/frontend.md](docs/frontend.md).
 
 ## Run Tests
 
@@ -262,8 +298,9 @@ Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/accounts \
+  -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
-  -d '{"owner_name":"Ivan Sidorov","currency":"RUB"}'
+  -d '{"currency":"RUB"}'
 ```
 
 ### Transfers
@@ -276,6 +313,7 @@ Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/transfers \
+  -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
   -d '{"from_account_id":"acc-001","to_account_id":"acc-002","amount":1000}'
 ```
@@ -291,23 +329,26 @@ GET /transactions?account_id={account_id}
 Examples:
 
 ```bash
-curl http://127.0.0.1:8000/transactions
-curl http://127.0.0.1:8000/transactions/{transaction_id}
-curl "http://127.0.0.1:8000/transactions?account_id=acc-001"
+curl -H "Authorization: Bearer <access_token>" http://127.0.0.1:8000/transactions
+curl -H "Authorization: Bearer <access_token>" http://127.0.0.1:8000/transactions/{transaction_id}
+curl -H "Authorization: Bearer <access_token>" "http://127.0.0.1:8000/transactions?account_id=acc-001"
 ```
 
 ## Current Business Rules
 
 Accounts:
 
-- Account owner name must not be blank.
+- Every newly created account belongs to the authenticated user.
+- Owner name is taken from the authenticated user profile.
+- Users can list and read only their own accounts.
+- Legacy accounts without an assigned user are hidden from user-scoped APIs.
 - Account currency must be one of `RUB`, `USD`, or `EUR`.
 - New accounts start with zero balance.
 - Account IDs are UUID-based values with the `acc-` prefix.
 
 Transfers:
 
-- Source account must exist.
+- Source account must exist and belong to the authenticated user.
 - Destination account must exist.
 - Source and destination accounts must be different.
 - Accounts must use the same currency.
@@ -322,7 +363,8 @@ Transactions:
 
 - Transaction IDs are UUID-based values with the `tx-` prefix.
 - Transaction lists are ordered by `created_at` descending.
-- Transactions can be filtered by source or destination account id.
+- Users see transactions involving at least one of their accounts.
+- Transactions can be filtered only by an account owned by the current user.
 
 Users:
 
@@ -340,8 +382,9 @@ Users:
 Near-term:
 
 - Keep the PostgreSQL-backed test suite green.
-- Decide how users should own accounts.
-- Protect banking write operations once authorization exists.
+- Build the guided transfer flow in the dashboard.
+- Generate frontend API types from the OpenAPI schema.
+- Move authentication from local storage to secure HttpOnly cookies.
 - Keep README and roadmap synchronized with implemented behavior.
 
 Later:

@@ -31,5 +31,14 @@ services:
       sh -c "alembic -c alembic.ini upgrade head &&
       uvicorn corebank_api.main:app --host 0.0.0.0 --port 8000 --app-dir src"
 
+  web:
+    build:
+      context: ./apps/web
+    container_name: corebank-web-compose
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
 volumes:
   corebank_postgres_data:

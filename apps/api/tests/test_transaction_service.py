@@ -27,7 +27,7 @@ def test_list_transactions_service_returns_transactions() -> None:
 
     save_transaction(transaction)
 
-    transactions = list_transactions()
+    transactions = list_transactions("user-alex")
 
     assert len(transactions) == 1
     assert transactions[0].id == "tx-001"
@@ -46,14 +46,14 @@ def test_get_transaction_service_returns_transaction_by_id() -> None:
 
     save_transaction(transaction)
 
-    found_transaction = get_transaction("tx-001")
+    found_transaction = get_transaction("tx-001", "user-alex")
 
     assert found_transaction is not None
     assert found_transaction.id == "tx-001"
 
 
 def test_get_transaction_service_returns_none_for_unknown_transaction() -> None:
-    transaction = get_transaction("tx-999")
+    transaction = get_transaction("tx-999", "user-alex")
 
     assert transaction is None
 
@@ -81,7 +81,7 @@ def test_list_transactions_by_account_id_service_returns_related_transactions() 
     save_transaction(first_transaction)
     save_transaction(second_transaction)
 
-    transactions = list_transactions_by_account_id("acc-001")
+    transactions = list_transactions_by_account_id("acc-001", "user-alex")
 
     assert len(transactions) == 2
     assert transactions[0].id == "tx-002"
