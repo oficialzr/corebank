@@ -4,6 +4,7 @@ import pytest
 from corebank_api.core.security import create_access_token
 from corebank_api.database.models import (
     AccountModel,
+    AuditEventModel,
     TransactionModel,
     TransferIdempotencyModel,
     UserModel,
@@ -16,6 +17,7 @@ from sqlalchemy.exc import OperationalError
 
 def reset_postgres_test_data() -> None:
     with SessionLocal() as session:
+        session.query(AuditEventModel).delete(synchronize_session=False)
         session.query(TransferIdempotencyModel).delete(synchronize_session=False)
         session.query(TransactionModel).delete(synchronize_session=False)
         session.query(AccountModel).delete(synchronize_session=False)

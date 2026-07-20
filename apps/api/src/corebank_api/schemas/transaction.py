@@ -10,6 +10,8 @@ class TransactionResponse(BaseModel):
     id: str
     from_account_id: str
     to_account_id: str
+    from_account: str | None = None
+    to_account: str | None = None
     amount: Money
     currency: Currency
     status: TransferStatus

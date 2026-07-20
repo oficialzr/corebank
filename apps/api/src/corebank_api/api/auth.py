@@ -20,6 +20,7 @@ from corebank_api.schemas.user import (
     UserRegisterRequest,
     UserResponse,
 )
+from corebank_api.services.audit import append_audit_event
 from corebank_api.services.users import (
     get_user_by_email,
     login_user,
@@ -150,6 +151,7 @@ def login_user_endpoint(request: UserLoginRequest, response: Response) -> Sessio
     csrf_token = secrets.token_urlsafe(32)
     response.set_cookie(ACCESS_COOKIE, access_token, httponly=True, secure=True, samesite="strict", path="/")
     response.set_cookie(CSRF_COOKIE, csrf_token, httponly=False, secure=True, samesite="strict", path="/")
+    append_audit_event("auth.login", user_id=user.id, entity_type="user", entity_id=user.id)
     return SessionResponse(authenticated=True)
 
 
@@ -185,6 +187,8 @@ def update_current_user_phone_endpoint(
     _: CsrfProtection,
 ) -> UserResponse:
     try:
-        return update_user_phone_number(current_user.id, request.phone_number)
+        user = update_user_phone_number(current_user.id, request.phone_number)
+        append_audit_event("user.phone_updated", user_id=user.id, entity_type="user", entity_id=user.id)
+        return user
     except PhoneAlreadyRegisteredError as error:
         raise phone_already_registered_error() from error

@@ -124,8 +124,8 @@ export function createAccount(currency: Currency): Promise<Account> {
   });
 }
 
-export function getTransactions(): Promise<Transaction[]> {
-  return authorizedRequest<Transaction[]>("/transactions");
+export function getTransactions(limit = 50, offset = 0): Promise<Transaction[]> {
+  return authorizedRequest<Transaction[]>(`/transactions?limit=${limit}&offset=${offset}`);
 }
 
 export function createTransfer(payload: {

@@ -25,6 +25,7 @@ from corebank_api.schemas.transfer import (
     TransferStatus,
 )
 from corebank_api.schemas.user import normalize_phone_number
+from corebank_api.services.audit import append_audit_event
 
 
 def normalize_recipient_identifier(identifier: str) -> tuple[str, str]:
@@ -221,6 +222,20 @@ def create_transfer(
             reservation.to_account_id = to_account.id
             reservation.amount = request.amount
             reservation.status = str(TransferStatus.COMPLETED)
+
+        append_audit_event(
+            "transfer.completed",
+            user_id=user_id,
+            entity_type="transaction",
+            entity_id=transaction.id,
+            details={
+                "from_account_id": from_account.id,
+                "to_account_id": to_account.id,
+                "amount": str(request.amount),
+                "currency": from_account.currency,
+            },
+            session=session,
+        )
 
         session.commit()
 

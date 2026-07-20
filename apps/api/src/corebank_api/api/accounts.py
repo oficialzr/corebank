@@ -9,6 +9,7 @@ from corebank_api.services.accounts import (
     get_account_by_id,
     list_accounts,
 )
+from corebank_api.services.audit import append_audit_event
 
 router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
@@ -47,8 +48,16 @@ def create_account_endpoint(
     current_user: CurrentUser,
     _: CsrfProtection,
 ) -> AccountResponse:
-    return create_account(
+    account = create_account(
         request,
         user_id=current_user.id,
         owner_name=current_user.full_name,
     )
+    append_audit_event(
+        "account.created",
+        user_id=current_user.id,
+        entity_type="account",
+        entity_id=account.id,
+        details={"currency": str(account.currency)},
+    )
+    return account

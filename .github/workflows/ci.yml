@@ -56,12 +56,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci --prefix apps/web
+      - run: pip install -r apps/api/requirements.txt
+      - run: PYTHONPATH=apps/api/src python apps/api/scripts/export_openapi.py apps/web/openapi.json
+      - run: npm run generate:api --prefix apps/web
+      - run: git diff --exit-code -- apps/web/openapi.json apps/web/src/generated/api-schema.ts
       - run: npm test --prefix apps/web
       - run: npm run build --prefix apps/web
 

@@ -151,6 +151,26 @@ def test_list_transactions_returns_newest_first(auth_client) -> None:
     assert transactions[1]["id"] == first_transaction_id
 
 
+def test_list_transactions_supports_pagination(auth_client) -> None:
+    first_transaction_id = create_test_transfer(auth_client)
+    second_transaction_id = create_test_transfer(auth_client)
+
+    response = auth_client.get("/transactions?limit=1&offset=1")
+
+    assert response.status_code == 200
+    assert [transaction["id"] for transaction in response.json()] == [first_transaction_id]
+    assert second_transaction_id != first_transaction_id
+
+
+def test_transaction_returns_masked_public_account_references(auth_client) -> None:
+    create_test_transfer(auth_client)
+
+    transaction = auth_client.get("/transactions").json()[0]
+
+    assert transaction["from_account"] == "•••• 0004"
+    assert transaction["to_account"] == "•••• 0012"
+
+
 def test_list_transactions_by_account_id_returns_newest_first(auth_client) -> None:
     first_transaction_id = create_test_transfer(auth_client)
     second_transaction_id = create_test_transfer(auth_client)

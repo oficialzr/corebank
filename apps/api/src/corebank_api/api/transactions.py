@@ -26,6 +26,8 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
 def list_transactions_endpoint(
     current_user: CurrentUser,
     account_id: str | None = Query(default=None, min_length=1),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
 ) -> list[TransactionResponse]:
     if account_id is not None:
         account_id = account_id.strip()
@@ -37,9 +39,9 @@ def list_transactions_endpoint(
                 message="Account ID must not be blank",
             )
 
-        return list_transactions_by_account_id(account_id, current_user.id)
+        return list_transactions_by_account_id(account_id, current_user.id, limit, offset)
 
-    return list_transactions(current_user.id)
+    return list_transactions(current_user.id, limit, offset)
 
 
 @router.get(

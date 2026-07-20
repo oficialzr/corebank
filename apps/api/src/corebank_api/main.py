@@ -1,10 +1,13 @@
-from fastapi import FastAPI
+from uuid import uuid4
+
+from fastapi import FastAPI, Request
 
 from corebank_api.api.accounts import router as accounts_router
 from corebank_api.api.auth import router as auth_router
 from corebank_api.api.health import router as health_router
 from corebank_api.api.transactions import router as transactions_router
 from corebank_api.api.transfers import router as transfers_router
+from corebank_api.core.request_context import request_id_context
 
 
 def create_app() -> FastAPI:
@@ -13,6 +16,17 @@ def create_app() -> FastAPI:
         description="Production-like banking backend API built with FastAPI, PostgreSQL, Docker, Alembic, and CI.",
         version="0.1.0",
     )
+
+    @app.middleware("http")
+    async def attach_request_id(request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID") or str(uuid4())
+        token = request_id_context.set(request_id)
+        try:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
+        finally:
+            request_id_context.reset(token)
 
     app.include_router(health_router)
     app.include_router(auth_router)

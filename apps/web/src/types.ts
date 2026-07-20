@@ -1,51 +1,17 @@
-export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  phone_number: string | null;
-  is_active: boolean;
-  created_at: string;
-}
+import type { components } from "./generated/api-schema";
 
-export interface SessionResponse {
-  authenticated: boolean;
-}
+type Schemas = components["schemas"];
 
-export type Currency = "RUB" | "USD" | "EUR";
-
-export interface Account {
-  id: string;
+export type User = Schemas["UserResponse"];
+export type SessionResponse = Schemas["SessionResponse"];
+export type Currency = Schemas["Currency"];
+export type Account = Omit<Schemas["AccountResponse"], "currency" | "user_id"> & {
+  currency: Currency;
   user_id: string;
-  owner_name: string;
-  card_number: string;
-  balance: number;
-  currency: Currency;
-  created_at: string;
-}
-
-export interface Transaction {
-  id: string;
-  from_account_id: string;
-  to_account_id: string;
-  amount: number;
-  currency: Currency;
-  status: "completed";
-  created_at: string;
-}
-
-export interface TransferResponse {
-  transaction_id: string;
-  from_account_id: string;
-  to_account_id: string;
-  amount: number;
-  status: "completed";
-}
-
-export interface RecipientLookup {
-  display_name: string;
-  masked_card_number: string;
-  currency: Currency;
-}
+};
+export type Transaction = Schemas["TransactionResponse"];
+export type TransferResponse = Schemas["TransferResponse"];
+export type RecipientLookup = Schemas["RecipientLookupResponse"];
 
 export interface ApiErrorBody {
   detail?: {
