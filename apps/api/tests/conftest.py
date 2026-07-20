@@ -32,6 +32,7 @@ def reset_postgres_test_data() -> None:
                     full_name="Alex Ivanov",
                     phone_number="+79990000001",
                     is_active=True,
+                    is_admin=True,
                     created_at=datetime.now(UTC),
                 ),
                 UserModel(
@@ -41,6 +42,7 @@ def reset_postgres_test_data() -> None:
                     full_name="Maria Petrova",
                     phone_number="+79990000002",
                     is_active=True,
+                    is_admin=False,
                     created_at=datetime.now(UTC),
                 ),
             ]

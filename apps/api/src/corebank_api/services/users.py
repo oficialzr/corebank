@@ -27,6 +27,7 @@ def to_user_response(user: UserRecord) -> UserResponse:
         full_name=user.full_name,
         phone_number=user.phone_number,
         is_active=user.is_active,
+        is_admin=user.is_admin,
         created_at=user.created_at,
     )
 
@@ -49,6 +50,7 @@ def register_user(request: UserRegisterRequest) -> UserResponse:
         full_name=request.full_name,
         phone_number=request.phone_number,
         is_active=True,
+        is_admin=False,
         created_at=datetime.now(UTC),
     )
 

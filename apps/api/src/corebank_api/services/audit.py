@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from corebank_api.core.request_context import get_request_id
 from corebank_api.database.models import AuditEventModel
 from corebank_api.database.session import SessionLocal
+from corebank_api.repositories.sql_audit import list_audit_events as query_audit_events
+from corebank_api.schemas.audit import AuditEventPage
 
 
 def append_audit_event(
@@ -37,3 +39,8 @@ def append_audit_event(
         own_session.commit()
         own_session.refresh(event)
         return event
+
+
+def list_audit_events(**filters) -> AuditEventPage:
+    with SessionLocal() as session:
+        return query_audit_events(session, **filters)

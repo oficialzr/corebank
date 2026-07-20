@@ -12,6 +12,7 @@ def model_to_schema(user: UserModel) -> UserRecord:
         full_name=user.full_name,
         phone_number=user.phone_number,
         is_active=user.is_active,
+        is_admin=user.is_admin,
         created_at=user.created_at,
     )
 

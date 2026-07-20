@@ -24,6 +24,7 @@ def test_register_user_returns_created_user(client) -> None:
     assert user["full_name"] == "Alex Ivanov"
     assert user["phone_number"] == "+79991234567"
     assert user["is_active"] is True
+    assert user["is_admin"] is False
     assert user["created_at"] is not None
     assert "password" not in user
     assert "password_hash" not in user

@@ -24,6 +24,7 @@ class UserModel(Base):
         nullable=False,
         default=True,
     )
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

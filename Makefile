@@ -1,4 +1,4 @@
-.PHONY: run-api run-api-test-env run-web build-web generate-api test-web test-e2e test lint format fix check migrate https-cert docker-up docker-down docker-ps docker-logs-api
+.PHONY: run-api run-api-test-env run-web build-web generate-api promote-admin test-web test-e2e test lint format fix check migrate https-cert docker-up docker-down docker-ps docker-logs-api
 
 TEST_DATABASE_URL=postgresql+psycopg://corebank:corebank@localhost:5433/corebank
 
@@ -17,6 +17,10 @@ build-web:
 generate-api:
 	PYTHONPATH=apps/api/src .venv/bin/python apps/api/scripts/export_openapi.py apps/web/openapi.json
 	npm --prefix apps/web run generate:api
+
+promote-admin:
+	@test -n "$(EMAIL)" || (echo "Usage: make promote-admin EMAIL=user@example.com" && exit 1)
+	COREBANK_DATABASE_URL=$(TEST_DATABASE_URL) PYTHONPATH=apps/api/src .venv/bin/python apps/api/scripts/set_admin.py "$(EMAIL)"
 
 test-web:
 	npm --prefix apps/web test

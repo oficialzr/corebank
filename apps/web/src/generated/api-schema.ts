@@ -158,6 +158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/audit-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Audit Events Endpoint */
+        get: operations["list_audit_events_endpoint_admin_audit_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/transfers/recipient": {
         parameters: {
             query?: never;
@@ -248,6 +265,41 @@ export interface components {
             balance: number;
             /** Currency */
             currency: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** AuditEventPage */
+        AuditEventPage: {
+            /** Items */
+            items: components["schemas"]["AuditEventResponse"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** AuditEventResponse */
+        AuditEventResponse: {
+            /** Id */
+            id: string;
+            /** User Id */
+            user_id: string | null;
+            /** Event Type */
+            event_type: string;
+            /** Entity Type */
+            entity_type: string | null;
+            /** Entity Id */
+            entity_id: string | null;
+            /** Request Id */
+            request_id: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
             /**
              * Created At
              * Format: date-time
@@ -382,6 +434,8 @@ export interface components {
             phone_number: string | null;
             /** Is Active */
             is_active: boolean;
+            /** Is Admin */
+            is_admin: boolean;
             /**
              * Created At
              * Format: date-time
@@ -724,6 +778,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_audit_events_endpoint_admin_audit_events_get: {
+        parameters: {
+            query?: {
+                user_id?: string | null;
+                event_type?: string | null;
+                request_id?: string | null;
+                created_from?: string | null;
+                created_to?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEventPage"];
                 };
             };
             /** @description Validation Error */

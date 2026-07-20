@@ -96,6 +96,15 @@ def get_current_user(request: Request, credentials: BearerCredentials) -> UserRe
 CurrentUser = Annotated[UserResponse, Depends(get_current_user)]
 
 
+def require_admin(current_user: CurrentUser) -> UserResponse:
+    if not current_user.is_admin:
+        raise api_error(status.HTTP_403_FORBIDDEN, "admin_access_required", "Admin access required")
+    return current_user
+
+
+AdminUser = Annotated[UserResponse, Depends(require_admin)]
+
+
 def validate_csrf(
     request: Request,
     csrf_header: Annotated[str | None, Header(alias="X-CSRF-Token")] = None,

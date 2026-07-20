@@ -25,6 +25,7 @@ const user = {
   full_name: "Алексей Иванов",
   phone_number: "+79991234567",
   is_active: true,
+  is_admin: false,
   created_at: "2026-07-20T08:00:00Z",
 };
 

@@ -21,6 +21,7 @@ class UserRecord(BaseModel):
     full_name: str
     phone_number: str | None
     is_active: bool
+    is_admin: bool = False
     created_at: datetime
 
 
@@ -60,6 +61,7 @@ class UserResponse(BaseModel):
     full_name: str
     phone_number: str | None
     is_active: bool
+    is_admin: bool
     created_at: datetime
 
 
