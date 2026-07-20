@@ -1,4 +1,4 @@
-.PHONY: run-api run-api-test-env run-web build-web test-web test lint format fix check migrate docker-up docker-down docker-ps docker-logs-api
+.PHONY: run-api run-api-test-env run-web build-web test-web test lint format fix check migrate https-cert docker-up docker-down docker-ps docker-logs-api
 
 TEST_DATABASE_URL=postgresql+psycopg://corebank:corebank@localhost:5433/corebank
 
@@ -37,6 +37,9 @@ check:
 
 migrate:
 	COREBANK_DATABASE_URL=$(TEST_DATABASE_URL) PYTHONPATH=apps/api/src alembic -c apps/api/alembic.ini upgrade head
+
+https-cert:
+	./scripts/setup-local-https.sh
 
 docker-up:
 	docker compose up -d --build

@@ -459,6 +459,7 @@ export default function Dashboard({
                     <span>Телефон или номер карты</span>
                     <input
                       autoFocus
+                      autoComplete="off"
                       inputMode="tel"
                       onChange={(event) => {
                         setRecipientIdentifier(event.target.value);

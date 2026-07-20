@@ -213,6 +213,7 @@ tempCodeRunnerFile.py
 node_modules/
 apps/web/dist/
 *.tsbuildinfo
+.certs/
 
 # Marimo
 marimo/_static/

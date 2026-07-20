@@ -37,6 +37,9 @@ services:
     container_name: corebank-web-compose
     ports:
       - "3000:80"
+      - "3443:443"
+    volumes:
+      - ./.certs:/etc/nginx/certs:ro
     depends_on:
       - api
 

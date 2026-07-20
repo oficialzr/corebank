@@ -167,11 +167,23 @@ The API will be available at:
 http://127.0.0.1:8000
 ```
 
-The web application will be available at:
+Generate a local development certificate before the first Docker start:
+
+```bash
+make https-cert
+```
+
+Trust `.certs/corebank-local-root-ca.pem` once in your operating system or
+browser certificate store. Never share or commit the generated CA private key.
+
+The HTTPS web application will be available at:
 
 ```text
-http://127.0.0.1:3000
+https://localhost:3443
 ```
+
+Requests to `http://localhost:3000` are redirected to HTTPS. The certificate
+also covers `127.0.0.1`, but `localhost` is the recommended development URL.
 
 Adminer, the browser database interface, will be available at:
 
